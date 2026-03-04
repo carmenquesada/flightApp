@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>FlyNow</title>
+
+<script>
+function buscarVuelo() {
+    alert("Buscando vuelos...");
+
+    document.getElementById("res").innerHTML =
+    "<b>Resultados:</b><br>" +
+    "Oporto - Madrid 45€<br>" +
+    "Oporto - Roma 120€<br>" +
+    "Oporto - Paris 70€";
+
+    document.getElementById("res").style.backgroundColor = "lightblue";
+}
+
+function borrarResultados() {
+    document.getElementById("res").innerHTML = "";
+}
+
+function ocultarResultados() {
+    document.getElementById("res").style.display = "none";
+}
+
+function mostrarResultados() {
+    document.getElementById("res").style.display = "block";
+}
+</script>
+</head>
+
+<body>
+<h2 id = "tit">Buscador simple de vuelos - FlyNow</h2>
+
+<button type = "button" onclick="buscarVuelo()">Buscar vuelos</button>
+<br><br>
+
+<button type = "button" onclick="borrarResultados()">Borrar</button>
+<br><br>
+
+<button type = "button" onclick="ocultarResultados()">Ocultar resultados</button>
+<br><br>
+
+<button type = "button" onclick="mostrarResultados()">Mostrar resultados</button>
+
+<hr>
+
+<div id="res"></div>
+
+</body>
+</html>
