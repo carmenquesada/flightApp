@@ -18,9 +18,4 @@ FlyNow es una plataforma pensada para modernizar cómo funcionan las reservas de
 * **Base de Datos:** MySQL.
 * **Contenedores:** Docker para que corra igual en todas las máquinas.
 
-## Cómo hacerlo funcionar
-Si quieres probarlo en tu PC, sigue estos pasos:
-
-1. **Clonar el repo:**
-   ```bash
-   git clone [https://github.com/tu-usuario/flynow.git](https://github.com/tu-usuario/flynow.git)
+   
