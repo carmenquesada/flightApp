@@ -1,0 +1,4 @@
+# Java build output
+/backend/bin/
+/bin/
+**/bin/

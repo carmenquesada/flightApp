@@ -1,0 +1,12 @@
+com\flynow\domain\Booking$BookingBuilder.class
+com\flynow\domain\Booking.class
+com\flynow\domain\enums\BookingStatus.class
+com\flynow\domain\User$UserBuilder.class
+com\flynow\domain\User.class
+com\flynow\domain\Flight.class
+com\flynow\domain\Passenger$PassengerBuilder.class
+com\flynow\domain\Airport.class
+com\flynow\domain\Airport$AirportBuilder.class
+com\flynow\domain\enums\CurrencyCode.class
+com\flynow\domain\Flight$FlightBuilder.class
+com\flynow\domain\Passenger.class
