@@ -3,40 +3,62 @@
 <head>
 <meta charset="utf-8">
 <title>FlyNow</title>
+
 <style>
+
 body {
     font-family: Arial;
+    background-color: white;
+    text-align: center;
 }
 
 h2 {
-    background-color: lightgray;
-    padding: 10px;
+    background-color: blue;
+    color: white;
+    padding: 15px;
+}
+
+#panel{
+    background-color: white;
+    width: 420px;
+    margin: auto;
+    padding: 20px;
+    border-width: 2px;
+    border-style: solid;
 }
 
 button {
     background-color: lightblue;
     border-width: 2px;
     border-style: solid;
-    padding: 5px;
-    margin-top: 5px;
+    padding: 8px;
+    margin: 5px;
+    width: 200px;
 }
 
 #res {
+    background-color: white;
+    width: 400px;
+    margin: auto;
+    margin-top: 20px;
     border-width: 2px;
     border-style: solid;
-    padding: 10px;
-    margin-top: 15px;
+    padding: 15px;
 }
+
 </style>
+
 <script>
+
 function buscarVuelo() {
+
     alert("Buscando vuelos...");
 
     document.getElementById("res").innerHTML =
-    "<b>Resultados:</b><br>" +
-    "Oporto - Madrid 45€<br>" +
-    "Oporto - Roma 120€<br>" +
-    "Oporto - Paris 70€";
+    "<h3>Resultados:</h3>" +
+    "<p>Oporto - Madrid | 45€</p>" +
+    "<p>Oporto - Roma | 120€</p>" +
+    "<p>Oporto - Paris | 70€</p>";
 
     document.getElementById("res").style.backgroundColor = "lightblue";
 }
@@ -52,11 +74,16 @@ function ocultarResultados() {
 function mostrarResultados() {
     document.getElementById("res").style.display = "block";
 }
+
 </script>
+
 </head>
 
 <body>
-<h2 id = "tit">Buscador simple de vuelos - FlyNow</h2>
+    
+<h2>Buscador simple de vuelos - FlyNow</h2>
+
+<div id = "panel">
 
 <button type = "button" onclick="buscarVuelo()">Buscar vuelos</button>
 <br><br>
@@ -69,9 +96,11 @@ function mostrarResultados() {
 
 <button type = "button" onclick="mostrarResultados()">Mostrar resultados</button>
 
-<hr>
+</div>
 
-<div id="res"></div>
+<div id="res">
+Resultados aparecerán aquí
+</div>
 
 </body>
 </html>
