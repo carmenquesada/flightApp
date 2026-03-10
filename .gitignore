@@ -2,3 +2,6 @@
 /backend/bin/
 /bin/
 **/bin/
+
+# Local private DB credentials (each dev has their own copy)
+/backend/resources/application-private.properties
