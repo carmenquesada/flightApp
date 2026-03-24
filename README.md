@@ -49,14 +49,19 @@ Rutas iniciales disponibles tras arrancar:
 
 - `http://localhost:8081/` devuelve un JSON basico de estado.
 - `http://localhost:8081/api/health` devuelve `{ "status": "UP" }`.
+- `http://localhost:8081/api/flights` devuelve los vuelos de la base de datos.
 
 ## Iniciar frontend con Tomcat 11
 
+Importante: arranca primero el backend para que la pagina pueda cargar vuelos de la base de datos.
+
 Se incluye el script `start-frontend-tomcat.ps1` en la raiz del proyecto. Este script:
 
-- Copia `frontend/public/busquedaVuelos.html` como `index.html` dentro de `webapps/ROOT` de Tomcat.
+- Copia `frontend/public/busquedaVuelos.html` como `busquedaVuelos.html` (y alias `busquedasVuelos.html`) en `webapps/ROOT`.
+- Hace que `/` redirija siempre a `busquedaVuelos.html`.
 - Inicia Tomcat si no esta ya en ejecucion.
-- Abre el navegador en `http://localhost:8080/`.
+- Abre el navegador en `http://localhost:8080/busquedaVuelos.html`.
+- Por defecto elimina apps estaticas de Tomcat (`ROOT`, `docs`, `examples`, `host-manager`, `manager`).
 
 1. Define la ruta de Tomcat (una sola vez por sesion de PowerShell):
 
@@ -68,6 +73,12 @@ Se incluye el script `start-frontend-tomcat.ps1` en la raiz del proyecto. Este s
 
 	```powershell
 	.\start-frontend-tomcat.ps1 -TomcatHome $env:TOMCAT_HOME
+	```
+
+Si quieres conservar las apps por defecto de Tomcat:
+
+	```powershell
+	.\start-frontend-tomcat.ps1 -TomcatHome $env:TOMCAT_HOME -RemoveDefaultTomcatApps:$false
 	```
 
 Tambien puedes pasar una ruta relativa desde la raiz de `flightApp`, por ejemplo:

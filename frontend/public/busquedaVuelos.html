@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
 <meta charset="utf-8">
 <title>FlyNow</title>
@@ -7,7 +7,7 @@
 <style>
 
 body {
-    font-family: Arial;
+    font-family: Arial, sans-serif;
     background-color: white;
     text-align: center;
 }
@@ -50,17 +50,59 @@ button {
 
 <script>
 
-function buscarVuelo() {
+const BACKEND_URL = "http://localhost:8081/api/flights";
 
-    alert("Buscando vuelos...");
+function formatDateTime(value) {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return value;
+    }
+    return date.toLocaleString();
+}
 
-    document.getElementById("res").innerHTML =
-    "<h3>Resultados:</h3>" +
-    "<p>Oporto - Madrid | 45€</p>" +
-    "<p>Oporto - Roma | 120€</p>" +
-    "<p>Oporto - Paris | 70€</p>";
+function renderFlights(flights) {
+    const container = document.getElementById("res");
 
-    document.getElementById("res").style.backgroundColor = "lightblue";
+    if (!flights || flights.length === 0) {
+        container.innerHTML = "<h3>Resultados:</h3><p>No hay vuelos disponibles.</p>";
+        return;
+    }
+
+    const items = flights.map(function(flight) {
+        return "<p>" +
+            flight.originIata + " - " + flight.destinationIata +
+            " | " + flight.basePrice + " " + flight.currency +
+            " | Salida: " + formatDateTime(flight.departureTime) +
+            " | Llegada: " + formatDateTime(flight.arrivalTime) +
+            " | Plazas: " + flight.availableSeats +
+            "</p>";
+    }).join("");
+
+    container.innerHTML = "<h3>Resultados:</h3>" + items;
+}
+
+async function buscarVuelo() {
+
+    const container = document.getElementById("res");
+    container.innerHTML = "<p>Cargando vuelos desde la base de datos...</p>";
+    container.style.display = "block";
+
+    try {
+        const response = await fetch(BACKEND_URL);
+        if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+        }
+
+        const flights = await response.json();
+        renderFlights(flights);
+        container.style.backgroundColor = "lightblue";
+    } catch {
+        container.innerHTML =
+            "<h3>Error</h3>" +
+            "<p>No se pudieron cargar vuelos del backend.</p>" +
+            "<p>Asegurate de arrancar primero el backend en http://localhost:8081.</p>";
+        container.style.backgroundColor = "#ffe0e0";
+    }
 }
 
 function borrarResultados() {

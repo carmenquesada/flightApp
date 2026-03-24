@@ -1,12 +1,14 @@
 param(
     [string]$TomcatHome = $env:CATALINA_HOME,
-    [bool]$OpenBrowser = $true
+    [bool]$OpenBrowser = $true,
+    [bool]$RemoveDefaultTomcatApps = $true
 )
 
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourceHtml = Join-Path $projectRoot "frontend\public\busquedaVuelos.html"
+$frontendRoute = "http://localhost:8080/busquedaVuelos.html"
 
 if (-not (Test-Path $sourceHtml)) {
     throw "No se encontro el HTML en: $sourceHtml"
@@ -27,13 +29,57 @@ if (-not (Test-Path $startupBat)) {
     throw "No se encontro startup.bat en: $startupBat"
 }
 
+if ($RemoveDefaultTomcatApps) {
+    $defaultApps = @("ROOT", "docs", "examples", "host-manager", "manager")
+    foreach ($app in $defaultApps) {
+        $appPath = Join-Path (Join-Path $TomcatHome "webapps") $app
+        if (Test-Path $appPath) {
+            Remove-Item -Path $appPath -Recurse -Force
+        }
+    }
+}
+
 $rootWebApp = Join-Path $TomcatHome "webapps\ROOT"
 if (-not (Test-Path $rootWebApp)) {
     New-Item -ItemType Directory -Path $rootWebApp | Out-Null
 }
 
-# Publica el HTML como pagina principal de ROOT.
-Copy-Item -Path $sourceHtml -Destination (Join-Path $rootWebApp "index.html") -Force
+# Elimina paginas legacy para evitar que Tomcat sirva una version antigua.
+$legacyPages = @(
+        "index.html",
+        "busquedaVuelos.html",
+        "busquedasVuelos.html"
+)
+
+foreach ($page in $legacyPages) {
+        $pagePath = Join-Path $rootWebApp $page
+        if (Test-Path $pagePath) {
+                Remove-Item -Path $pagePath -Force
+        }
+}
+
+# Publica la pagina real en singular y crea alias en plural por compatibilidad.
+Copy-Item -Path $sourceHtml -Destination (Join-Path $rootWebApp "busquedaVuelos.html") -Force
+Copy-Item -Path $sourceHtml -Destination (Join-Path $rootWebApp "busquedasVuelos.html") -Force
+
+# / redirige siempre a la pagina correcta.
+$indexContent = @"
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="refresh" content="0; url=/busquedaVuelos.html">
+    <title>FlyNow</title>
+</head>
+<body>
+    <script>
+        window.location.replace('/busquedaVuelos.html');
+    </script>
+</body>
+</html>
+"@
+
+Set-Content -Path (Join-Path $rootWebApp "index.html") -Value $indexContent -Encoding UTF8
 
 $env:CATALINA_HOME = $TomcatHome
 if ([string]::IsNullOrWhiteSpace($env:CATALINA_BASE)) {
@@ -45,7 +91,7 @@ Start-Sleep -Seconds 3
 
 $frontendOk = $false
 try {
-    $resp = Invoke-WebRequest -Uri "http://localhost:8080/" -UseBasicParsing -TimeoutSec 5
+    $resp = Invoke-WebRequest -Uri $frontendRoute -UseBasicParsing -TimeoutSec 5
     if ($resp.Content -match "Buscador simple de vuelos - FlyNow") {
         $frontendOk = $true
     }
@@ -54,13 +100,17 @@ try {
 }
 
 if ($OpenBrowser) {
-    Start-Process "http://localhost:8080/"
+    $cacheBuster = [DateTimeOffset]::Now.ToUnixTimeSeconds()
+    Start-Process "$frontendRoute?v=$cacheBuster"
 }
 
 if ($frontendOk) {
-    Write-Host "Frontend desplegado en Tomcat: http://localhost:8080/"
+    Write-Host "Frontend desplegado en Tomcat: $frontendRoute"
 } else {
-    Write-Warning "No se pudo verificar la pagina en http://localhost:8080/. Revisa si el puerto 8080 esta ocupado por otro servicio."
+    Write-Warning "No se pudo verificar la pagina en $frontendRoute. Revisa si el puerto 8080 esta ocupado por otro servicio."
 }
 
 Write-Host "Para detener Tomcat: $TomcatHome\bin\shutdown.bat"
+if ($RemoveDefaultTomcatApps) {
+    Write-Host "Apps por defecto eliminadas de Tomcat: ROOT/docs/examples/host-manager/manager"
+}
