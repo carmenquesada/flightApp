@@ -3,5 +3,6 @@
     "backend/src"
   ],
   "java.project.outputPath": "backend/bin",
-  "java.configuration.updateBuildConfiguration": "interactive"
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.compile.nullAnalysis.mode": "automatic"
 }
