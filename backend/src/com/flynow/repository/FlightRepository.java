@@ -38,7 +38,69 @@ public class FlightRepository {
                 ORDER BY departure_time ASC
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> Flight.builder()
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapFlight(rs));
+    }
+
+    public List<Flight> findByRoute(String originIata, String destinationIata) {
+        String sql = """
+                SELECT
+                    id,
+                    flight_number,
+                    airline_code,
+                    airline_name,
+                    origin_iata,
+                    destination_iata,
+                    departure_time,
+                    arrival_time,
+                    duration_minutes,
+                    stops,
+                    base_price,
+                    currency,
+                    available_seats
+                FROM flights
+                WHERE UPPER(origin_iata) = UPPER(?)
+                  AND UPPER(destination_iata) = UPPER(?)
+                ORDER BY departure_time ASC
+                """;
+
+        return jdbcTemplate.query(sql, (rs, rowNum) -> mapFlight(rs), originIata, destinationIata);
+    }
+
+    public List<String> findDistinctOrigins() {
+        String sql = """
+                SELECT DISTINCT origin_iata
+                FROM flights
+                ORDER BY origin_iata ASC
+                """;
+
+        return jdbcTemplate.queryForList(sql, String.class);
+    }
+
+    public List<String> findDistinctDestinations() {
+        String sql = """
+                SELECT DISTINCT destination_iata
+                FROM flights
+                ORDER BY destination_iata ASC
+                """;
+
+        return jdbcTemplate.queryForList(sql, String.class);
+    }
+
+    public List<String> findDistinctRoutePoints() {
+        String sql = """
+                SELECT iata FROM (
+                    SELECT DISTINCT origin_iata AS iata FROM flights
+                    UNION
+                    SELECT DISTINCT destination_iata AS iata FROM flights
+                ) route_points
+                ORDER BY iata ASC
+                """;
+
+        return jdbcTemplate.queryForList(sql, String.class);
+    }
+
+    private Flight mapFlight(java.sql.ResultSet rs) throws java.sql.SQLException {
+        return Flight.builder()
                 .id(rs.getLong("id"))
                 .flightNumber(rs.getString("flight_number"))
                 .airlineCode(rs.getString("airline_code"))
@@ -52,6 +114,6 @@ public class FlightRepository {
                 .basePrice(rs.getBigDecimal("base_price"))
                 .currency(CurrencyCode.valueOf(rs.getString("currency")))
                 .availableSeats(rs.getInt("available_seats"))
-                .build());
+                .build();
     }
 }

@@ -8,10 +8,15 @@ $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourceHtml = Join-Path $projectRoot "frontend\public\busquedaVuelos.html"
+$sourceAssets = Join-Path $projectRoot "frontend\assets"
 $frontendRoute = "http://localhost:8080/busquedaVuelos.html"
 
 if (-not (Test-Path $sourceHtml)) {
     throw "No se encontro el HTML en: $sourceHtml"
+}
+
+if (-not (Test-Path $sourceAssets)) {
+    throw "No se encontro la carpeta de assets en: $sourceAssets"
 }
 
 if (-not [string]::IsNullOrWhiteSpace($TomcatHome) -and -not [System.IO.Path]::IsPathRooted($TomcatHome)) {
@@ -62,6 +67,14 @@ foreach ($page in $legacyPages) {
 Copy-Item -Path $sourceHtml -Destination (Join-Path $rootWebApp "busquedaVuelos.html") -Force
 Copy-Item -Path $sourceHtml -Destination (Join-Path $rootWebApp "busquedasVuelos.html") -Force
 
+# Publica recursos estaticos (CSS/JS/imagenes) para que el frontend funcione.
+$rootAssets = Join-Path $rootWebApp "assets"
+if (Test-Path $rootAssets) {
+    Remove-Item -Path $rootAssets -Recurse -Force
+}
+
+Copy-Item -Path $sourceAssets -Destination $rootAssets -Recurse -Force
+
 # / redirige siempre a la pagina correcta.
 $indexContent = @"
 <!doctype html>
@@ -92,7 +105,7 @@ Start-Sleep -Seconds 3
 $frontendOk = $false
 try {
     $resp = Invoke-WebRequest -Uri $frontendRoute -UseBasicParsing -TimeoutSec 5
-    if ($resp.Content -match "Buscador simple de vuelos - FlyNow") {
+    if ($resp.Content -match "FlyNow \| Buscar vuelos") {
         $frontendOk = $true
     }
 } catch {
