@@ -41,17 +41,21 @@ if (-not $backendRunning) {
         "-Dspring-boot.run.arguments=--server.port=$Port"
     )
 
-    $startupLogPath = Join-Path $projectRoot "backend-startup.log"
-    if (Test-Path $startupLogPath) {
-        Remove-Item -Path $startupLogPath -Force
+    $startupStdoutLogPath = Join-Path $projectRoot "backend-startup.out.log"
+    $startupStderrLogPath = Join-Path $projectRoot "backend-startup.err.log"
+
+    foreach ($logPath in @($startupStdoutLogPath, $startupStderrLogPath)) {
+        if (Test-Path $logPath) {
+            Remove-Item -Path $logPath -Force
+        }
     }
 
     $process = Start-Process `
         -FilePath $MavenCommand `
         -ArgumentList $mavenArgs `
         -WorkingDirectory $backendPath `
-        -RedirectStandardOutput $startupLogPath `
-        -RedirectStandardError $startupLogPath `
+        -RedirectStandardOutput $startupStdoutLogPath `
+        -RedirectStandardError $startupStderrLogPath `
         -PassThru
 
     $started = $false
@@ -70,11 +74,13 @@ if (-not $backendRunning) {
     }
 
     if (-not $started) {
-        Write-Warning "El backend no respondio en el puerto $Port dentro de $StartupTimeoutSeconds segundos. Revisa el log: $startupLogPath"
+        Write-Warning "El backend no respondio en el puerto $Port dentro de $StartupTimeoutSeconds segundos. Revisa los logs: $startupStdoutLogPath y $startupStderrLogPath"
 
-        if (Test-Path $startupLogPath) {
-            Write-Host "--- Ultimas lineas del log de arranque ---"
-            Get-Content -Path $startupLogPath -Tail 40
+        foreach ($logPath in @($startupStdoutLogPath, $startupStderrLogPath)) {
+            if (Test-Path $logPath) {
+                Write-Host "--- Ultimas lineas de $logPath ---"
+                Get-Content -Path $logPath -Tail 40
+            }
         }
     }
 } else {
