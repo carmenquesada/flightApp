@@ -1,7 +1,8 @@
 param(
     [int]$Port = 8081,
     [switch]$NoBrowser,
-    [string]$MavenCommand = "mvn"
+    [string]$MavenCommand = "mvn",
+    [int]$StartupTimeoutSeconds = 90
 )
 
 $ErrorActionPreference = "Stop"
@@ -40,12 +41,22 @@ if (-not $backendRunning) {
         "-Dspring-boot.run.arguments=--server.port=$Port"
     )
 
-    Start-Process -FilePath $MavenCommand -ArgumentList $mavenArgs -WorkingDirectory $backendPath | Out-Null
+    $startupLogPath = Join-Path $projectRoot "backend-startup.log"
+    if (Test-Path $startupLogPath) {
+        Remove-Item -Path $startupLogPath -Force
+    }
 
-    $maxWaitSeconds = 40
+    $process = Start-Process `
+        -FilePath $MavenCommand `
+        -ArgumentList $mavenArgs `
+        -WorkingDirectory $backendPath `
+        -RedirectStandardOutput $startupLogPath `
+        -RedirectStandardError $startupLogPath `
+        -PassThru
+
     $started = $false
 
-    for ($i = 0; $i -lt $maxWaitSeconds; $i++) {
+    for ($i = 0; $i -lt $StartupTimeoutSeconds; $i++) {
         Start-Sleep -Seconds 1
         try {
             $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction Stop
@@ -59,7 +70,12 @@ if (-not $backendRunning) {
     }
 
     if (-not $started) {
-        Write-Warning "El backend no respondio en el puerto $Port dentro de $maxWaitSeconds segundos. Revisa la consola de Maven."
+        Write-Warning "El backend no respondio en el puerto $Port dentro de $StartupTimeoutSeconds segundos. Revisa el log: $startupLogPath"
+
+        if (Test-Path $startupLogPath) {
+            Write-Host "--- Ultimas lineas del log de arranque ---"
+            Get-Content -Path $startupLogPath -Tail 40
+        }
     }
 } else {
     Write-Host "Backend ya estaba en ejecucion en el puerto $Port."
