@@ -1,148 +1,182 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<title>FlyNow</title>
-
-<style>
-
-body {
-    font-family: Arial, sans-serif;
-    background-color: white;
-    text-align: center;
-}
-
-h2 {
-    background-color: blue;
-    color: white;
-    padding: 15px;
-}
-
-#panel{
-    background-color: white;
-    width: 420px;
-    margin: auto;
-    padding: 20px;
-    border-width: 2px;
-    border-style: solid;
-}
-
-button {
-    background-color: lightblue;
-    border-width: 2px;
-    border-style: solid;
-    padding: 8px;
-    margin: 5px;
-    width: 200px;
-}
-
-#res {
-    background-color: white;
-    width: 400px;
-    margin: auto;
-    margin-top: 20px;
-    border-width: 2px;
-    border-style: solid;
-    padding: 15px;
-}
-
-</style>
-
-<script>
-
-const BACKEND_URL = "http://localhost:8081/api/flights";
-
-function formatDateTime(value) {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) {
-        return value;
-    }
-    return date.toLocaleString();
-}
-
-function renderFlights(flights) {
-    const container = document.getElementById("res");
-
-    if (!flights || flights.length === 0) {
-        container.innerHTML = "<h3>Resultados:</h3><p>No hay vuelos disponibles.</p>";
-        return;
-    }
-
-    const items = flights.map(function(flight) {
-        return "<p>" +
-            flight.originIata + " - " + flight.destinationIata +
-            " | " + flight.basePrice + " " + flight.currency +
-            " | Salida: " + formatDateTime(flight.departureTime) +
-            " | Llegada: " + formatDateTime(flight.arrivalTime) +
-            " | Plazas: " + flight.availableSeats +
-            "</p>";
-    }).join("");
-
-    container.innerHTML = "<h3>Resultados:</h3>" + items;
-}
-
-async function buscarVuelo() {
-
-    const container = document.getElementById("res");
-    container.innerHTML = "<p>Cargando vuelos desde la base de datos...</p>";
-    container.style.display = "block";
-
-    try {
-        const response = await fetch(BACKEND_URL);
-        if (!response.ok) {
-            throw new Error("HTTP " + response.status);
-        }
-
-        const flights = await response.json();
-        renderFlights(flights);
-        container.style.backgroundColor = "lightblue";
-    } catch {
-        container.innerHTML =
-            "<h3>Error</h3>" +
-            "<p>No se pudieron cargar vuelos del backend.</p>" +
-            "<p>Asegurate de arrancar primero el backend en http://localhost:8081.</p>";
-        container.style.backgroundColor = "#ffe0e0";
-    }
-}
-
-function borrarResultados() {
-    document.getElementById("res").innerHTML = "";
-}
-
-function ocultarResultados() {
-    document.getElementById("res").style.display = "none";
-}
-
-function mostrarResultados() {
-    document.getElementById("res").style.display = "block";
-}
-
-</script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlyNow | Buscar vuelos</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-
 <body>
-    
-<h2>Buscador simple de vuelos - FlyNow</h2>
 
-<div id = "panel">
+  <header class="site-header">
+    <div class="container header-content">
+      <div class="logo">✈ FlyNow</div>
+      <nav class="nav">
+        <a href="#">Buscar vuelos</a>
+        <a href="#">Mis reservas</a>
+        <a href="#">Ofertas</a>
+        <a href="#">Ayuda</a>
+      </nav>
+    </div>
+  </header>
 
-<button type = "button" onclick="buscarVuelo()">Buscar vuelos</button>
-<br><br>
+  <main>
+    <section class="hero">
+      <div class="container hero-content">
+        <div class="hero-text">
+          <span class="hero-badge">Ofertas exclusivas</span>
+          <h1>Encuentra tu próximo vuelo al mejor precio</h1>
+          <p>
+            Busca, compara y reserva vuelos de forma rápida, cómoda y visual.
+            Planifica tu viaje con una experiencia más moderna y realista.
+          </p>
+        </div>
 
-<button type = "button" onclick="borrarResultados()">Borrar</button>
-<br><br>
+        <div class="search-card">
+          <div class="trip-type">
+            <button class="trip-btn active">Ida y vuelta</button>
+            <button class="trip-btn">Solo ida</button>
+          </div>
 
-<button type = "button" onclick="ocultarResultados()">Ocultar resultados</button>
-<br><br>
+          <form id="flightSearchForm" class="search-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="origin">Origen</label>
+                <input type="text" id="origin" name="origin" placeholder="Ej. Madrid">
+              </div>
 
-<button type = "button" onclick="mostrarResultados()">Mostrar resultados</button>
+              <div class="form-group">
+                <label for="destination">Destino</label>
+                <input type="text" id="destination" name="destination" placeholder="Ej. Oporto">
+              </div>
+            </div>
 
-</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="departureDate">Fecha de ida</label>
+                <input type="date" id="departureDate" name="departureDate">
+              </div>
 
-<div id="res">
-Resultados aparecerán aquí
-</div>
+              <div class="form-group">
+                <label for="returnDate">Fecha de vuelta</label>
+                <input type="date" id="returnDate" name="returnDate">
+              </div>
+            </div>
 
+            <div class="form-row">
+              <div class="form-group">
+                <label for="passengers">Pasajeros</label>
+                <select id="passengers" name="passengers">
+                  <option value="1">1 pasajero</option>
+                  <option value="2">2 pasajeros</option>
+                  <option value="3">3 pasajeros</option>
+                  <option value="4">4 pasajeros</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="travelClass">Clase</label>
+                <select id="travelClass" name="travelClass">
+                  <option value="economy">Turista</option>
+                  <option value="premium">Premium</option>
+                  <option value="business">Business</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="search-button">Buscar vuelos</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <section class="results-section">
+      <div class="container">
+        <div class="results-header">
+          <div>
+            <h2>Resultados disponibles</h2>
+            <p id="resultsInfo">Introduce una búsqueda para ver vuelos disponibles.</p>
+          </div>
+
+          <div class="results-filters">
+            <select id="sortBy">
+              <option value="price">Ordenar por precio</option>
+              <option value="duration">Ordenar por duración</option>
+              <option value="departure">Ordenar por hora de salida</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="resultsContainer" class="results-grid">
+          <article class="flight-card demo-card">
+            <div class="flight-route">
+              <div>
+                <span class="airport-code">MAD</span>
+                <p>Madrid</p>
+              </div>
+
+              <div class="flight-line">
+                <span>Directo</span>
+              </div>
+
+              <div>
+                <span class="airport-code">OPO</span>
+                <p>Oporto</p>
+              </div>
+            </div>
+
+            <div class="flight-details">
+              <div>
+                <strong>08:30</strong>
+                <p>Salida</p>
+              </div>
+              <div>
+                <strong>09:45</strong>
+                <p>Llegada</p>
+              </div>
+              <div>
+                <strong>1h 15m</strong>
+                <p>Duración</p>
+              </div>
+              <div class="price-box">
+                <span>Desde</span>
+                <strong>79 €</strong>
+              </div>
+            </div>
+
+            <button class="reserve-button">Reservar</button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="popular-destinations">
+      <div class="container">
+        <h2>Destinos populares</h2>
+        <div class="destinations-grid">
+          <div class="destination-card">
+            <h3>París</h3>
+            <p>Escapadas románticas y culturales.</p>
+          </div>
+          <div class="destination-card">
+            <h3>Roma</h3>
+            <p>Historia, comida y arquitectura.</p>
+          </div>
+          <div class="destination-card">
+            <h3>Londres</h3>
+            <p>Una ciudad vibrante para cualquier época.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>© 2026 FlyNow. Proyecto de búsqueda y reserva de vuelos.</p>
+    </div>
+  </footer>
+
+  <script src="../assets/js/app.js"></script>
 </body>
 </html>
