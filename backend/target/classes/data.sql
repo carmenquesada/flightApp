@@ -91,10 +91,10 @@ INSERT INTO flights (
 ('VY1102', 'VY', 'Vueling', 'MAD', 'OPO', '2026-03-20 16:30:00', '2026-03-20 17:40:00', 70, 0, 59.95, 'EUR', 98);
 
 INSERT INTO users (name, email, password_hash, phone) VALUES
-('Ana Martinez', 'ana@flynow.test', '$2a$10$demoHashAna', '+34600111222'),
-('Luis Romero', 'luis@flynow.test', '$2a$10$demoHashLuis', '+34677123456'),
-('Maria Silva', 'maria@flynow.test', '$2a$10$demoHashMaria', '+351911223344'),
-('John Carter', 'john@flynow.test', '$2a$10$demoHashJohn', '+447700900123');
+('Ana Martinez', 'ana@flynow.test', 'demo123', '+34600111222'),
+('Luis Romero', 'luis@flynow.test', 'demo123', '+34677123456'),
+('Maria Silva', 'maria@flynow.test', 'demo123', '+351911223344'),
+('John Carter', 'john@flynow.test', 'demo123', '+447700900123');
 
 INSERT INTO bookings (
     booking_code, status, user_id, flight_id,

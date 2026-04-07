@@ -50,6 +50,8 @@ Rutas iniciales disponibles tras arrancar:
 - `http://localhost:8081/` devuelve un JSON basico de estado.
 - `http://localhost:8081/api/health` devuelve `{ "status": "UP" }`.
 - `http://localhost:8081/api/flights` devuelve los vuelos de la base de datos.
+- `http://localhost:8081/api/auth/register` registra usuarios.
+- `http://localhost:8081/api/auth/login` valida login contra usuarios existentes.
 
 ## Iniciar frontend con Tomcat 11
 
@@ -58,9 +60,10 @@ Importante: arranca primero el backend para que la pagina pueda cargar vuelos de
 Se incluye el script `start-frontend-tomcat.ps1` en la raiz del proyecto. Este script:
 
 - Copia `frontend/public/busquedaVuelos.html` como `busquedaVuelos.html` (y alias `busquedasVuelos.html`) en `webapps/ROOT`.
-- Hace que `/` redirija siempre a `busquedaVuelos.html`.
+- Publica todas las paginas en `frontend/public` (incluyendo `login.html`).
+- Hace que `/` redirija siempre a `login.html`.
 - Inicia Tomcat si no esta ya en ejecucion.
-- Abre el navegador en `http://localhost:8080/busquedaVuelos.html`.
+- Abre el navegador en `http://localhost:8080/login.html`.
 - Por defecto elimina apps estaticas de Tomcat (`ROOT`, `docs`, `examples`, `host-manager`, `manager`).
 
 1. Define la ruta de Tomcat (una sola vez por sesion de PowerShell):
@@ -98,5 +101,6 @@ Tambien puedes pasar una ruta relativa desde la raiz de `flightApp`, por ejemplo
 - Si ya usas `CATALINA_HOME`, el script tambien lo toma automaticamente.
 - Si Tomcat ya estaba levantado en el puerto 8080, el script vuelve a copiar la pagina y abre el navegador.
 - Si tienes otro servicio ocupando el 8080, libera ese puerto o cambia el puerto HTTP de Tomcat en `conf/server.xml`.
+- Usuario demo para login: `ana@flynow.test` con password `demo123`.
 
 

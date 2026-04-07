@@ -7,12 +7,12 @@ param(
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$sourceHtml = Join-Path $projectRoot "frontend\public\busquedaVuelos.html"
+$sourcePublicDir = Join-Path $projectRoot "frontend\public"
 $sourceAssets = Join-Path $projectRoot "frontend\assets"
-$frontendRoute = "http://localhost:8080/busquedaVuelos.html"
+$frontendRoute = "http://localhost:8080/login.html"
 
-if (-not (Test-Path $sourceHtml)) {
-    throw "No se encontro el HTML en: $sourceHtml"
+if (-not (Test-Path $sourcePublicDir)) {
+    throw "No se encontro la carpeta public en: $sourcePublicDir"
 }
 
 if (-not (Test-Path $sourceAssets)) {
@@ -52,6 +52,7 @@ if (-not (Test-Path $rootWebApp)) {
 # Elimina paginas legacy para evitar que Tomcat sirva una version antigua.
 $legacyPages = @(
         "index.html",
+    "login.html",
         "busquedaVuelos.html",
         "busquedasVuelos.html"
 )
@@ -63,9 +64,16 @@ foreach ($page in $legacyPages) {
         }
 }
 
-# Publica la pagina real en singular y crea alias en plural por compatibilidad.
-Copy-Item -Path $sourceHtml -Destination (Join-Path $rootWebApp "busquedaVuelos.html") -Force
-Copy-Item -Path $sourceHtml -Destination (Join-Path $rootWebApp "busquedasVuelos.html") -Force
+# Publica todas las paginas del frontend.
+Get-ChildItem -Path $sourcePublicDir -Filter "*.html" -File | ForEach-Object {
+    Copy-Item -Path $_.FullName -Destination (Join-Path $rootWebApp $_.Name) -Force
+}
+
+# Alias legacy para mantener compatibilidad con URLs antiguas.
+$searchPagePath = Join-Path $rootWebApp "busquedaVuelos.html"
+if (Test-Path $searchPagePath) {
+    Copy-Item -Path $searchPagePath -Destination (Join-Path $rootWebApp "busquedasVuelos.html") -Force
+}
 
 # Publica recursos estaticos (CSS/JS/imagenes) para que el frontend funcione.
 $rootAssets = Join-Path $rootWebApp "assets"
@@ -81,12 +89,12 @@ $indexContent = @"
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="refresh" content="0; url=/busquedaVuelos.html">
+    <meta http-equiv="refresh" content="0; url=/login.html">
     <title>FlyNow</title>
 </head>
 <body>
     <script>
-        window.location.replace('/busquedaVuelos.html');
+        window.location.replace('/login.html');
     </script>
 </body>
 </html>
@@ -105,7 +113,7 @@ Start-Sleep -Seconds 3
 $frontendOk = $false
 try {
     $resp = Invoke-WebRequest -Uri $frontendRoute -UseBasicParsing -TimeoutSec 5
-    if ($resp.Content -match "FlyNow \| Buscar vuelos") {
+    if ($resp.Content -match "FlyNow \| Login") {
         $frontendOk = $true
     }
 } catch {

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlyNow | Login</title>
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="auth-page">
+  <main class="auth-main">
+    <section class="auth-card">
+      <h1>FlyNow</h1>
+      <p class="auth-subtitle">Inicia sesion o crea tu cuenta para ver tus reservas y buscar vuelos.</p>
+
+      <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active" type="button">Login</button>
+        <button id="registerTab" class="auth-tab" type="button">Register</button>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <label for="loginEmail">Email</label>
+        <input id="loginEmail" name="email" type="email" required>
+
+        <label for="loginPassword">Password</label>
+        <input id="loginPassword" name="password" type="password" required>
+
+        <button type="submit" class="search-button">Entrar</button>
+        <p class="auth-hint">Usuarios demo: ana@flynow.test / demo123</p>
+      </form>
+
+      <form id="registerForm" class="auth-form hidden">
+        <label for="registerName">Nombre</label>
+        <input id="registerName" name="name" type="text" required>
+
+        <label for="registerEmail">Email</label>
+        <input id="registerEmail" name="email" type="email" required>
+
+        <label for="registerPassword">Password</label>
+        <input id="registerPassword" name="password" type="password" required>
+
+        <label for="registerPhone">Telefono</label>
+        <input id="registerPhone" name="phone" type="text">
+
+        <button type="submit" class="search-button">Crear cuenta</button>
+      </form>
+
+      <p id="authMessage" class="auth-message"></p>
+    </section>
+  </main>
+
+  <script src="../assets/js/auth.js"></script>
+</body>
+</html>

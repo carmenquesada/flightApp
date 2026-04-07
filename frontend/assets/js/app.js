@@ -1,18 +1,24 @@
-const API_BASE_CANDIDATES = [
-    `${globalThis.location.origin}/api/flights`,
-    "http://localhost:8081/api/flights",
-    "http://localhost:8080/api/flights"
+const API_ROOT_CANDIDATES = [
+    `${globalThis.location.origin}/api`,
+    "http://localhost:8081/api",
+    "http://localhost:8080/api"
 ];
 
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", async () => {
+    const currentUser = requireAuthenticatedUser();
+    setupLogout();
+
+    await Promise.all([
+        loadSearchOptions(),
+        loadUserDashboard(currentUser.id)
+    ]);
+
     const form = document.getElementById("flightSearchForm");
     const originInput = document.getElementById("origin");
     const destinationInput = document.getElementById("destination");
 
-    await loadSearchOptions();
-
-    form.addEventListener("submit", async function (e) {
-        e.preventDefault();
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
 
         const origin = originInput.value.trim().toUpperCase();
         const destination = destinationInput.value.trim().toUpperCase();
@@ -27,24 +33,105 @@ document.addEventListener("DOMContentLoaded", async function () {
             const filteredFlights = filterFlightsByRoute(flights, origin, destination);
             showResults(filteredFlights, origin, destination);
         } catch (error) {
-            showError("No se pudieron cargar los vuelos. Revisa que el backend esté arrancado.");
+            showError("No se pudieron cargar los vuelos. Revisa que el backend este arrancado.");
             console.error(error);
         }
     });
 });
 
+function requireAuthenticatedUser() {
+    const rawUser = globalThis.localStorage.getItem("flynowUser");
+
+    if (!rawUser) {
+        globalThis.location.href = "/login.html";
+        throw new Error("Usuario no autenticado");
+    }
+
+    try {
+        const user = JSON.parse(rawUser);
+
+        if (!user || !user.id) {
+            globalThis.localStorage.removeItem("flynowUser");
+            globalThis.location.href = "/login.html";
+            throw new Error("Sesion invalida");
+        }
+
+        return user;
+    } catch {
+        globalThis.localStorage.removeItem("flynowUser");
+        globalThis.location.href = "/login.html";
+        throw new Error("Sesion corrupta");
+    }
+}
+
+function setupLogout() {
+    const logoutLink = document.getElementById("logoutLink");
+
+    if (!logoutLink) {
+        return;
+    }
+
+    logoutLink.addEventListener("click", event => {
+        event.preventDefault();
+        globalThis.localStorage.removeItem("flynowUser");
+        globalThis.location.href = "/login.html";
+    });
+}
+
+async function loadUserDashboard(userId) {
+    try {
+        const profile = await callApi(`/users/${encodeURIComponent(userId)}/profile`);
+        const bookings = await callApi(`/users/${encodeURIComponent(userId)}/bookings`);
+
+        renderProfile(profile);
+        renderBookings(bookings);
+    } catch (error) {
+        const bookingsContainer = document.getElementById("bookingsContainer");
+        bookingsContainer.innerHTML = "<p>No se pudieron cargar tus reservas.</p>";
+        console.error(error);
+    }
+}
+
+function renderProfile(profile) {
+    document.getElementById("profileName").textContent = profile.name || "-";
+    document.getElementById("profileEmail").textContent = profile.email || "-";
+    document.getElementById("profilePhone").textContent = profile.phone || "No informado";
+    document.getElementById("profileCreatedAt").textContent = formatDateTime(profile.createdAt);
+}
+
+function renderBookings(bookings) {
+    const bookingsContainer = document.getElementById("bookingsContainer");
+
+    if (!Array.isArray(bookings) || bookings.length === 0) {
+        bookingsContainer.innerHTML = "<p>No tienes reservas todavia.</p>";
+        return;
+    }
+
+    bookingsContainer.innerHTML = bookings.map(booking => `
+        <article class="booking-item">
+            <div class="booking-head">
+                <strong>${booking.bookingCode}</strong>
+                <span>${booking.status}</span>
+            </div>
+            <p>${booking.originIata} -> ${booking.destinationIata}</p>
+            <p>${formatTime(booking.departureTime)} - ${formatTime(booking.arrivalTime)}</p>
+            <p>${booking.totalPrice} ${booking.currency} · ${booking.passengersCount} pasajero(s)</p>
+        </article>
+    `).join("");
+}
+
 async function loadSearchOptions() {
     try {
-        const options = await fetchFromApi("/options");
+        const options = await callApi("/flights/options");
         const parsed = normalizeOptionsPayload(options);
         fillSelect("origin", parsed.origins, "Selecciona origen");
         fillSelect("destination", parsed.destinations, "Selecciona destino");
         applyQueryParamSelections();
     } catch (error) {
-        console.warn("No se pudo cargar /options. Se intentara construir opciones desde /api/flights", error);
+        console.warn("No se pudo cargar /flights/options. Se intentara con /flights", error);
 
         try {
-            const flights = await fetchFromApi("");
+            const flights = await callApi("/flights");
             const parsed = buildOptionsFromFlights(flights);
 
             if (parsed.origins.length === 0 && parsed.destinations.length === 0) {
@@ -55,7 +142,7 @@ async function loadSearchOptions() {
             fillSelect("destination", parsed.destinations, "Selecciona destino");
             applyQueryParamSelections();
         } catch (fallbackError) {
-            showError("No se pudieron cargar los orígenes y destinos.");
+            showError("No se pudieron cargar los origenes y destinos.");
             console.error(fallbackError);
         }
     }
@@ -112,13 +199,9 @@ function sanitizeIataList(values) {
         return [];
     }
 
-    return Array.from(
-        new Set(
-            values
-                .map(value => String(value || "").trim().toUpperCase())
-                .filter(Boolean)
-        )
-    );
+    return Array.from(new Set(values
+        .map(value => String(value || "").trim().toUpperCase())
+        .filter(Boolean)));
 }
 
 function mergeUniqueOptions(origins, destinations) {
@@ -128,17 +211,17 @@ function mergeUniqueOptions(origins, destinations) {
 
 async function fetchFlights(origin, destination) {
     const query = `?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
-    return fetchFromApi(query);
+    return callApi(`/flights${query}`);
 }
 
-async function fetchFromApi(pathOrQuery) {
+async function callApi(path, options = {}) {
     let lastError;
 
-    for (const candidate of API_BASE_CANDIDATES) {
-        const url = `${candidate}${pathOrQuery}`;
+    for (const candidate of API_ROOT_CANDIDATES) {
+        const url = `${candidate}${path}`;
 
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, options);
 
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status} (${url})`);
@@ -200,7 +283,6 @@ function filterFlightsByRoute(flights, origin, destination) {
     return flights.filter(flight => {
         const flightOrigin = String(flight.originIata || "").toUpperCase();
         const flightDestination = String(flight.destinationIata || "").toUpperCase();
-
         return flightOrigin === origin && flightDestination === destination;
     });
 }
@@ -252,7 +334,7 @@ function showResults(flights, origin, destination) {
 
                 <div>
                     <strong>${formatDuration(flight.durationMinutes)}</strong>
-                    <p>Duración</p>
+                    <p>Duracion</p>
                 </div>
 
                 <div class="price-box">
@@ -284,6 +366,19 @@ function formatTime(isoDateTime) {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false
+    });
+}
+
+function formatDateTime(isoDateTime) {
+    const date = new Date(isoDateTime);
+
+    if (Number.isNaN(date.getTime())) {
+        return "-";
+    }
+
+    return date.toLocaleDateString("es-ES") + " " + date.toLocaleTimeString("es-ES", {
+        hour: "2-digit",
+        minute: "2-digit"
     });
 }
 
