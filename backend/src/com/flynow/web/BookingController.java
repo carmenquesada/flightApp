@@ -87,6 +87,30 @@ public class BookingController {
                 booking.getCreatedAt());
     }
 
+    @PatchMapping("/{bookingId}/cancel")
+    public BookingResponse cancel(@PathVariable Long bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva no encontrada"));
+
+        if (booking.getStatus().name().equals("CANCELLED")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La reserva ya esta cancelada");
+        }
+
+        bookingRepository.cancelBooking(bookingId);
+
+        Booking updatedBooking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva no encontrada"));
+
+        return new BookingResponse(
+                updatedBooking.getId(),
+                updatedBooking.getBookingCode(),
+                updatedBooking.getStatus().toString(),
+                updatedBooking.getPassengersCount(),
+                updatedBooking.getTotalPrice(),
+                updatedBooking.getCurrency().toString(),
+                updatedBooking.getCreatedAt());
+    }
+
     private String generateUniqueBookingCode() {
         // Generate a booking code in format FN + 4 random alphanumeric characters
         // Example: FN9A2K

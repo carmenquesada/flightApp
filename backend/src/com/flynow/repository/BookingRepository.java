@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -99,5 +100,50 @@ public class BookingRepository {
         } catch (Exception ex) {
             throw new RuntimeException("Error creating booking", ex);
         }
+    }
+    
+    public Optional<Booking> findById(Long bookingId) {
+    String sql = """
+            SELECT
+                id,
+                booking_code,
+                status,
+                user_id,
+                flight_id,
+                passengers_count,
+                total_price,
+                currency,
+                created_at
+            FROM bookings
+            WHERE id = ?
+            """;
+
+    try {
+        Booking booking = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> new Booking(
+                rs.getLong("id"),
+                rs.getString("booking_code"),
+                BookingStatus.valueOf(rs.getString("status")),
+                rs.getLong("user_id"),
+                rs.getLong("flight_id"),
+                rs.getInt("passengers_count"),
+                rs.getBigDecimal("total_price"),
+                CurrencyCode.valueOf(rs.getString("currency")),
+                rs.getObject("created_at", Timestamp.class).toInstant()
+        ), bookingId);
+
+        return Optional.ofNullable(booking);
+    } catch (Exception ex) {
+        return Optional.empty();
+    }
+    }
+
+    public void cancelBooking(Long bookingId) {
+        String sql = """
+                UPDATE bookings
+                SET status = ?
+                WHERE id = ?
+                """;
+
+        jdbcTemplate.update(sql, BookingStatus.CANCELLED.toString(), bookingId);
     }
 }
