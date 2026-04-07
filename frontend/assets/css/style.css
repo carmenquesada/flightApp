@@ -763,3 +763,68 @@ body {
   transform: rotate(35deg);
   letter-spacing: 0.08em;
 }
+
+.offers-toolbar {
+  align-items: end;
+}
+
+.offers-filters {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.filter-group label {
+  font-size: 0.9rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.filter-group select {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1px solid #cbd5e1;
+  padding: 0 12px;
+  background: #fff;
+}
+
+.offers-page {
+  padding-bottom: 48px;
+}
+
+.offer-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.offer-badge {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: #2563eb;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+}
+
+@media (max-width: 768px) {
+  .offers-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+}

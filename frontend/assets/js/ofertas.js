@@ -6,11 +6,13 @@ const API_ROOT_CANDIDATES = [
 
 let currentUser = null;
 let selectedFlightForBooking = null;
+let allFlights = [];
 
 document.addEventListener("DOMContentLoaded", async () => {
     currentUser = requireAuthenticatedUser();
     setupLogout();
     setupBookingModal();
+    setupOfferFilters();
     await loadOffers();
 });
 
@@ -81,14 +83,9 @@ async function loadOffers() {
 
     try {
         const flights = await callApi("/flights");
+        allFlights = Array.isArray(flights) ? flights : [];
 
-        const cheapestFlights = [...flights]
-            .sort((a, b) => Number(a.basePrice) - Number(b.basePrice))
-            .slice(0, 6);
-
-        renderOffers(cheapestFlights);
-
-        summary.textContent = `Estas son las ${cheapestFlights.length} ofertas mas baratas disponibles.`;
+        applyOfferFilters();
     } catch (error) {
         console.error(error);
         summary.textContent = "No se pudieron cargar las ofertas.";
@@ -96,21 +93,72 @@ async function loadOffers() {
     }
 }
 
+function setupOfferFilters() {
+    const maxPriceFilter = document.getElementById("maxPriceFilter");
+    const routeTypeFilter = document.getElementById("routeTypeFilter");
+
+    if (maxPriceFilter) {
+        maxPriceFilter.addEventListener("change", applyOfferFilters);
+    }
+
+    if (routeTypeFilter) {
+        routeTypeFilter.addEventListener("change", applyOfferFilters);
+    }
+}
+
+function applyOfferFilters() {
+    const maxPriceFilter = document.getElementById("maxPriceFilter");
+    const routeTypeFilter = document.getElementById("routeTypeFilter");
+    const summary = document.getElementById("offersSummary");
+
+    const maxPrice = Number(maxPriceFilter?.value || 90);
+    const routeType = routeTypeFilter?.value || "all";
+
+    let filteredFlights = [...allFlights].filter(flight => Number(flight.basePrice) <= maxPrice);
+
+    if (routeType === "direct") {
+        filteredFlights = filteredFlights.filter(flight => Number(flight.stops) === 0);
+    } else if (routeType === "withStops") {
+        filteredFlights = filteredFlights.filter(flight => Number(flight.stops) > 0);
+    }
+
+    filteredFlights.sort((a, b) => Number(a.basePrice) - Number(b.basePrice));
+
+    renderOffers(filteredFlights);
+
+    if (filteredFlights.length === 0) {
+        summary.textContent = "No hay vuelos que coincidan con esos filtros.";
+        return;
+    }
+
+    summary.textContent = `Se muestran ${filteredFlights.length} oferta(s) por debajo de ${maxPrice} EUR.`;
+}
+
 function renderOffers(flights) {
     const container = document.getElementById("offersContainer");
 
     if (!Array.isArray(flights) || flights.length === 0) {
-        container.innerHTML = "<p>No hay ofertas disponibles en este momento.</p>";
+        container.innerHTML = `
+            <article class="empty-bookings">
+                <h3>No hay ofertas disponibles</h3>
+                <p>Prueba con un precio maximo mas alto o cambia el tipo de vuelo.</p>
+            </article>
+        `;
         return;
     }
 
     container.innerHTML = "";
 
     flights.forEach(flight => {
+        const price = Number(flight.basePrice);
+        const offerLabel = getOfferLabel(price);
+
         const card = document.createElement("article");
         card.className = "flight-card offer-card";
 
         card.innerHTML = `
+            <div class="offer-badge">${offerLabel}</div>
+
             <div class="flight-route">
                 <div>
                     <span class="airport-code">${flight.originIata}</span>
@@ -118,7 +166,7 @@ function renderOffers(flights) {
                 </div>
 
                 <div class="flight-line">
-                    <span>${flight.stops === 0 ? "Directo" : `${flight.stops} escalas`}</span>
+                    <span>${Number(flight.stops) === 0 ? "Directo" : `${flight.stops} escalas`}</span>
                 </div>
 
                 <div>
@@ -154,6 +202,18 @@ function renderOffers(flights) {
 
         container.appendChild(card);
     });
+}
+
+function getOfferLabel(price) {
+    if (price <= 60) {
+        return "Super oferta";
+    }
+
+    if (price <= 80) {
+        return "Precio top";
+    }
+
+    return "Oferta";
 }
 
 function formatTime(isoDateTime) {

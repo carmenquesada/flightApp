@@ -31,18 +31,39 @@
     </section>
 
     <section class="bookings-page-section">
-      <div class="container">
-        <div class="bookings-toolbar">
-          <div>
-            <h2>Vuelos mas baratos</h2>
+    <div class="container">
+        <div class="bookings-toolbar offers-toolbar">
+        <div>
+            <h2>Vuelos en oferta</h2>
             <p id="offersSummary">Cargando ofertas...</p>
-          </div>
+        </div>
+
+        <div class="offers-filters">
+            <div class="filter-group">
+            <label for="maxPriceFilter">Precio maximo</label>
+            <select id="maxPriceFilter">
+                <option value="70">Hasta 70 EUR</option>
+                <option value="90" selected>Hasta 90 EUR</option>
+                <option value="120">Hasta 120 EUR</option>
+                <option value="9999">Todos</option>
+            </select>
+            </div>
+
+            <div class="filter-group">
+            <label for="routeTypeFilter">Tipo de vuelo</label>
+            <select id="routeTypeFilter">
+                <option value="all" selected>Todos</option>
+                <option value="direct">Directos</option>
+                <option value="withStops">Con escalas</option>
+            </select>
+            </div>
+        </div>
         </div>
 
         <div id="offersContainer" class="results-grid">
-          <p>Cargando ofertas...</p>
+        <p>Cargando ofertas...</p>
         </div>
-      </div>
+    </div>
     </section>
   </main>
 
