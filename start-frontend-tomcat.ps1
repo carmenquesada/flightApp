@@ -122,7 +122,11 @@ try {
 
 if ($OpenBrowser) {
     $cacheBuster = [DateTimeOffset]::Now.ToUnixTimeSeconds()
-    Start-Process "$frontendRoute?v=$cacheBuster"
+    try {
+        [System.Diagnostics.Process]::Start("$frontendRoute`?v=$cacheBuster")
+    } catch {
+        Write-Host "No se pudo abrir el navegador. Accede manualmente a: $frontendRoute"
+    }
 }
 
 if ($frontendOk) {

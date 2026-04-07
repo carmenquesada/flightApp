@@ -2,6 +2,7 @@ package com.flynow.repository;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -97,6 +98,34 @@ public class FlightRepository {
                 """;
 
         return jdbcTemplate.queryForList(sql, String.class);
+    }
+
+    public Optional<Flight> findById(Long id) {
+        String sql = """
+                SELECT
+                    id,
+                    flight_number,
+                    airline_code,
+                    airline_name,
+                    origin_iata,
+                    destination_iata,
+                    departure_time,
+                    arrival_time,
+                    duration_minutes,
+                    stops,
+                    base_price,
+                    currency,
+                    available_seats
+                FROM flights
+                WHERE id = ?
+                """;
+
+        try {
+            Flight flight = jdbcTemplate.queryForObject(sql, (rs, rowNum) -> mapFlight(rs), id);
+            return Optional.of(flight);
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     private Flight mapFlight(java.sql.ResultSet rs) throws java.sql.SQLException {

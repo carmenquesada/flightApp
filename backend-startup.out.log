@@ -11,8 +11,7 @@
 [INFO] Copying 4 resources from resources to target\classes
 [INFO] 
 [INFO] --- compiler:3.13.0:compile (default-compile) @ flightapp-backend ---
-[INFO] Recompiling the module because of changed source code.
-[INFO] Compiling 16 source files with javac [debug parameters release 17] to target\classes
+[INFO] Nothing to compile - all classes are up to date.
 [INFO] 
 [INFO] --- resources:3.3.1:testResources (default-testResources) @ flightapp-backend ---
 [INFO] skip non existing resourceDirectory C:\Users\cocod\OneDrive - UNIVERSIDAD DE SEVILLA\Escritorio\ERASMUS\FlightApp\flightApp\backend\src\test\resources
@@ -35,24 +34,24 @@
 
  :: Spring Boot ::                (v3.4.3)
 
-2026-04-07T12:53:00.797+02:00  INFO 16396 --- [flightapp-backend] [           main] com.flynow.FlightAppApplication          : Starting FlightAppApplication using Java 21.0.7 with PID 16396 (C:\Users\cocod\OneDrive - UNIVERSIDAD DE SEVILLA\Escritorio\ERASMUS\FlightApp\flightApp\backend\target\classes started by cocod in C:\Users\cocod\OneDrive - UNIVERSIDAD DE SEVILLA\Escritorio\ERASMUS\FlightApp\flightApp\backend)
-2026-04-07T12:53:00.802+02:00  INFO 16396 --- [flightapp-backend] [           main] com.flynow.FlightAppApplication          : No active profile set, falling back to 1 default profile: "default"
-2026-04-07T12:53:01.872+02:00  INFO 16396 --- [flightapp-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
-2026-04-07T12:53:01.916+02:00  INFO 16396 --- [flightapp-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29 ms. Found 0 JPA repository interfaces.
-2026-04-07T12:53:03.279+02:00  INFO 16396 --- [flightapp-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
-2026-04-07T12:53:03.339+02:00  INFO 16396 --- [flightapp-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-04-07T12:53:03.341+02:00  INFO 16396 --- [flightapp-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.36]
-2026-04-07T12:53:03.577+02:00  INFO 16396 --- [flightapp-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-04-07T12:53:03.581+02:00  INFO 16396 --- [flightapp-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2690 ms
-2026-04-07T12:53:03.902+02:00  INFO 16396 --- [flightapp-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
-2026-04-07T12:53:04.467+02:00  INFO 16396 --- [flightapp-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@77d4ac52
-2026-04-07T12:53:04.475+02:00  INFO 16396 --- [flightapp-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
-2026-04-07T12:53:05.291+02:00  INFO 16396 --- [flightapp-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
-2026-04-07T12:53:05.541+02:00  INFO 16396 --- [flightapp-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.8.Final
-2026-04-07T12:53:05.685+02:00  INFO 16396 --- [flightapp-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
-2026-04-07T12:53:06.852+02:00  INFO 16396 --- [flightapp-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
-2026-04-07T12:53:07.137+02:00  WARN 16396 --- [flightapp-backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-04-07T12:53:07.200+02:00  INFO 16396 --- [flightapp-backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+2026-04-07T13:24:08.523+02:00  INFO 70932 --- [flightapp-backend] [           main] com.flynow.FlightAppApplication          : Starting FlightAppApplication using Java 21.0.7 with PID 70932 (C:\Users\cocod\OneDrive - UNIVERSIDAD DE SEVILLA\Escritorio\ERASMUS\FlightApp\flightApp\backend\target\classes started by cocod in C:\Users\cocod\OneDrive - UNIVERSIDAD DE SEVILLA\Escritorio\ERASMUS\FlightApp\flightApp\backend)
+2026-04-07T13:24:08.530+02:00  INFO 70932 --- [flightapp-backend] [           main] com.flynow.FlightAppApplication          : No active profile set, falling back to 1 default profile: "default"
+2026-04-07T13:24:09.474+02:00  INFO 70932 --- [flightapp-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-07T13:24:09.523+02:00  INFO 70932 --- [flightapp-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 29 ms. Found 0 JPA repository interfaces.
+2026-04-07T13:24:10.656+02:00  INFO 70932 --- [flightapp-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-04-07T13:24:10.706+02:00  INFO 70932 --- [flightapp-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-07T13:24:10.708+02:00  INFO 70932 --- [flightapp-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.36]
+2026-04-07T13:24:10.949+02:00  INFO 70932 --- [flightapp-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-07T13:24:10.953+02:00  INFO 70932 --- [flightapp-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 2347 ms
+2026-04-07T13:24:11.267+02:00  INFO 70932 --- [flightapp-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-07T13:24:11.815+02:00  INFO 70932 --- [flightapp-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@51bddd98
+2026-04-07T13:24:11.822+02:00  INFO 70932 --- [flightapp-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-07T13:24:12.562+02:00  INFO 70932 --- [flightapp-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-07T13:24:12.762+02:00  INFO 70932 --- [flightapp-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.8.Final
+2026-04-07T13:24:12.881+02:00  INFO 70932 --- [flightapp-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-04-07T13:24:13.898+02:00  INFO 70932 --- [flightapp-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-07T13:24:14.138+02:00  WARN 70932 --- [flightapp-backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: MySQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-07T13:24:14.189+02:00  INFO 70932 --- [flightapp-backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
 	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
 	Database driver: undefined/unknown
 	Database version: 8.0.45
@@ -60,11 +59,11 @@
 	Isolation level: undefined/unknown
 	Minimum pool size: undefined/unknown
 	Maximum pool size: undefined/unknown
-2026-04-07T12:53:08.492+02:00  INFO 16396 --- [flightapp-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
-2026-04-07T12:53:08.516+02:00  INFO 16396 --- [flightapp-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
-2026-04-07T12:53:08.879+02:00  WARN 16396 --- [flightapp-backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-04-07T12:53:10.097+02:00  INFO 16396 --- [flightapp-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
-2026-04-07T12:53:10.120+02:00  INFO 16396 --- [flightapp-backend] [           main] com.flynow.FlightAppApplication          : Started FlightAppApplication in 9.988 seconds (process running for 10.576)
-2026-04-07T12:53:12.346+02:00  INFO 16396 --- [flightapp-backend] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-04-07T12:53:12.347+02:00  INFO 16396 --- [flightapp-backend] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-04-07T12:53:12.351+02:00  INFO 16396 --- [flightapp-backend] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 3 ms
+2026-04-07T13:24:15.341+02:00  INFO 70932 --- [flightapp-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-07T13:24:15.365+02:00  INFO 70932 --- [flightapp-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-07T13:24:15.736+02:00  WARN 70932 --- [flightapp-backend] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-07T13:24:17.025+02:00  INFO 70932 --- [flightapp-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path '/'
+2026-04-07T13:24:17.054+02:00  INFO 70932 --- [flightapp-backend] [           main] com.flynow.FlightAppApplication          : Started FlightAppApplication in 9.28 seconds (process running for 9.954)
+2026-04-07T13:24:18.603+02:00  INFO 70932 --- [flightapp-backend] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-07T13:24:18.605+02:00  INFO 70932 --- [flightapp-backend] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-07T13:24:18.609+02:00  INFO 70932 --- [flightapp-backend] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 4 ms

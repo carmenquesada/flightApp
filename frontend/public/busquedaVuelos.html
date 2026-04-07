@@ -201,6 +201,27 @@
     </div>
   </footer>
 
+  <!-- Booking Modal -->
+  <div id="bookingModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Realizar Reserva</h3>
+        <button class="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="flightInfo" style="margin-bottom: 16px;"></p>
+        <label for="passengersInput">Número de pasajeros:</label>
+        <input type="number" id="passengersInput" min="1" max="9" value="1">
+        <p id="pricePreview" style="margin-top: 16px; font-weight: bold; color: #2563eb;"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="bookingCancelBtn" class="btn-secondary">Cancelar</button>
+        <button id="bookingConfirmBtn" class="btn-primary">Confirmar Reserva</button>
+      </div>
+    </div>
+  </div>
+
   <script src="../assets/js/app.js"></script>
 </body>
 </html>

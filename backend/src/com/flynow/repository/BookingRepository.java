@@ -1,11 +1,14 @@
 package com.flynow.repository;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.flynow.domain.Booking;
 import com.flynow.domain.BookingDetails;
 import com.flynow.domain.enums.BookingStatus;
 import com.flynow.domain.enums.CurrencyCode;
@@ -57,5 +60,44 @@ public class BookingRepository {
             rs.getString("destination_iata"),
             rs.getObject("departure_time", Timestamp.class).toLocalDateTime(),
             rs.getObject("arrival_time", Timestamp.class).toLocalDateTime()), userId);
+    }
+
+    public Booking create(String bookingCode, Long userId, Long flightId, Integer passengersCount, BigDecimal totalPrice, CurrencyCode currency) {
+        String sql = """
+                INSERT INTO bookings (booking_code, status, user_id, flight_id, passengers_count, total_price, currency, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """;
+
+        Instant now = Instant.now();
+
+        try {
+            jdbcTemplate.update(sql,
+                    bookingCode,
+                    BookingStatus.CONFIRMED.toString(),
+                    userId,
+                    flightId,
+                    passengersCount,
+                    totalPrice,
+                    currency.toString(),
+                    Timestamp.from(now));
+
+            Long bookingId = jdbcTemplate.queryForObject(
+                    "SELECT id FROM bookings WHERE booking_code = ?",
+                    Long.class,
+                    bookingCode);
+
+            return new Booking(
+                    bookingId,
+                    bookingCode,
+                    BookingStatus.CONFIRMED,
+                    userId,
+                    flightId,
+                    passengersCount,
+                    totalPrice,
+                    currency,
+                    now);
+        } catch (Exception ex) {
+            throw new RuntimeException("Error creating booking", ex);
+        }
     }
 }

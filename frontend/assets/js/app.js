@@ -4,8 +4,10 @@ const API_ROOT_CANDIDATES = [
     "http://localhost:8080/api"
 ];
 
+let currentUser = null;
+
 document.addEventListener("DOMContentLoaded", async () => {
-    const currentUser = requireAuthenticatedUser();
+    currentUser = requireAuthenticatedUser();
     setupLogout();
 
     await Promise.all([
@@ -37,6 +39,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             console.error(error);
         }
     });
+
+    setupBookingModal();
 });
 
 function requireAuthenticatedUser() {
@@ -347,6 +351,9 @@ function showResults(flights, origin, destination) {
         `;
 
         container.appendChild(card);
+
+        const reserveButton = card.querySelector(".reserve-button");
+        reserveButton.addEventListener("click", () => openBookingModal(flight, currentUser));
     });
 }
 
@@ -391,4 +398,104 @@ function formatDuration(minutes) {
     const mins = minutes % 60;
 
     return `${hours}h ${mins}m`;
+}
+
+// Booking Modal Functions
+function setupBookingModal() {
+    const modal = document.getElementById("bookingModal");
+    const closeBtn = document.querySelector(".modal-close");
+    const cancelBtn = document.getElementById("bookingCancelBtn");
+    const confirmBtn = document.getElementById("bookingConfirmBtn");
+    const passengersInput = document.getElementById("passengersInput");
+
+    closeBtn.addEventListener("click", closeBookingModal);
+    cancelBtn.addEventListener("click", closeBookingModal);
+    confirmBtn.addEventListener("click", submitBooking);
+
+    passengersInput.addEventListener("input", updatePricePreview);
+
+    // Close modal when clicking on overlay
+    const overlay = document.querySelector(".modal-overlay");
+    overlay.addEventListener("click", closeBookingModal);
+}
+
+let selectedFlightForBooking = null;
+
+function openBookingModal(flight, user) {
+    selectedFlightForBooking = flight;
+
+    const modal = document.getElementById("bookingModal");
+    const flightInfo = document.getElementById("flightInfo");
+    const passengersInput = document.getElementById("passengersInput");
+
+    flightInfo.textContent = `${flight.originIata} → ${flight.destinationIata} | ${flight.flightNumber} (${flight.airlineName})`;
+    passengersInput.value = 1;
+
+    updatePricePreview();
+
+    modal.classList.remove("hidden");
+}
+
+function closeBookingModal() {
+    const modal = document.getElementById("bookingModal");
+    modal.classList.add("hidden");
+    selectedFlightForBooking = null;
+}
+
+function updatePricePreview() {
+    if (!selectedFlightForBooking) return;
+
+    const passengersInput = document.getElementById("passengersInput");
+    const pricePreview = document.getElementById("pricePreview");
+
+    const passengers = parseInt(passengersInput.value) || 1;
+    const totalPrice = selectedFlightForBooking.basePrice * passengers;
+
+    pricePreview.textContent = `Total: ${totalPrice.toFixed(2)} ${selectedFlightForBooking.currency}`;
+}
+
+async function submitBooking() {
+    if (!selectedFlightForBooking || !currentUser) return;
+
+    const passengersInput = document.getElementById("passengersInput");
+    const passengers = parseInt(passengersInput.value) || 1;
+
+    const bookingRequest = {
+        userId: currentUser.id,
+        flightId: selectedFlightForBooking.id,
+        passengersCount: passengers
+    };
+
+    try {
+        const confirmBtn = document.getElementById("bookingConfirmBtn");
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "Procesando...";
+
+        const response = await callApi("/bookings", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(bookingRequest)
+        });
+
+        console.log("Booking created:", response);
+
+        // Show success message
+        alert(`Reserva confirmada: ${response.bookingCode}`);
+
+        // Close modal
+        closeBookingModal();
+
+        // Reload user bookings
+        await loadUserDashboard(currentUser.id);
+
+    } catch (error) {
+        console.error("Error creating booking:", error);
+        alert("Error al crear la reserva. Por favor, intenta de nuevo.");
+    } finally {
+        const confirmBtn = document.getElementById("bookingConfirmBtn");
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Confirmar Reserva";
+    }
 }
