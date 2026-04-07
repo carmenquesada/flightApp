@@ -32,8 +32,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
             const flights = await fetchFlights(origin, destination);
-            const filteredFlights = filterFlightsByRoute(flights, origin, destination);
-            showResults(filteredFlights, origin, destination);
+            console.log("Vuelos recibidos:", flights);
+            showResults(flights, origin, destination);
         } catch (error) {
             showError("No se pudieron cargar los vuelos. Revisa que el backend este arrancado.");
             console.error(error);
@@ -214,8 +214,15 @@ function mergeUniqueOptions(origins, destinations) {
 }
 
 async function fetchFlights(origin, destination) {
-    const query = `?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`;
-    return callApi(`/flights${query}`);
+    const response = await fetch(
+        `http://localhost:8081/api/flights?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`
+    );
+
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+    }
+
+    return await response.json();
 }
 
 async function callApi(path, options = {}) {
@@ -295,6 +302,11 @@ function showResults(flights, origin, destination) {
     const container = document.getElementById("resultsContainer");
     const info = document.getElementById("resultsInfo");
 
+    if (!container || !info) {
+        console.error("No existe resultsContainer o resultsInfo");
+        return;
+    }
+
     container.innerHTML = "";
 
     if (!Array.isArray(flights) || flights.length === 0) {
@@ -306,7 +318,7 @@ function showResults(flights, origin, destination) {
 
     flights.forEach(flight => {
         const card = document.createElement("article");
-        card.classList.add("flight-card");
+        card.className = "flight-card";
 
         card.innerHTML = `
             <div class="flight-route">
@@ -316,7 +328,7 @@ function showResults(flights, origin, destination) {
                 </div>
 
                 <div class="flight-line">
-                    ${flight.stops === 0 ? "Directo" : `${flight.stops} escalas`}
+                    <span>${flight.stops === 0 ? "Directo" : `${flight.stops} escalas`}</span>
                 </div>
 
                 <div>
@@ -330,30 +342,27 @@ function showResults(flights, origin, destination) {
                     <strong>${formatTime(flight.departureTime)}</strong>
                     <p>Salida</p>
                 </div>
-
                 <div>
                     <strong>${formatTime(flight.arrivalTime)}</strong>
                     <p>Llegada</p>
                 </div>
-
                 <div>
                     <strong>${formatDuration(flight.durationMinutes)}</strong>
                     <p>Duracion</p>
                 </div>
-
                 <div class="price-box">
                     <span>Precio</span>
                     <strong>${flight.basePrice} ${flight.currency}</strong>
                 </div>
             </div>
 
-            <button class="reserve-button">Reservar</button>
+            <button type="button" class="reserve-button">Reservar</button>
         `;
 
-        container.appendChild(card);
-
         const reserveButton = card.querySelector(".reserve-button");
-        reserveButton.addEventListener("click", () => openBookingModal(flight, currentUser));
+        reserveButton.addEventListener("click", () => openBookingModal(flight));
+
+        container.appendChild(card);
     });
 }
 
