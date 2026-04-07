@@ -740,3 +740,26 @@ body {
     flex-direction: column;
   }
 }
+
+.offers-page {
+  padding-bottom: 48px;
+}
+
+.offer-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.offer-card::before {
+  content: "OFERTA";
+  position: absolute;
+  top: 14px;
+  right: -34px;
+  background: #2563eb;
+  color: #fff;
+  padding: 6px 40px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  transform: rotate(35deg);
+  letter-spacing: 0.08em;
+}

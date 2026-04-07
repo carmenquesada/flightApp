@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlyNow | Ofertas</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-content">
+      <div class="logo">✈ FlyNow</div>
+      <nav class="nav">
+        <a href="/busquedaVuelos.html">Buscar vuelos</a>
+        <a href="/misReservas.html">Mis reservas</a>
+        <a href="/ofertas.html">Ofertas</a>
+        <a href="#">Ayuda</a>
+        <a href="#" id="logoutLink">Cerrar sesion</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="offers-page">
+    <section class="page-hero">
+      <div class="container">
+        <span class="hero-badge">Precios destacados</span>
+        <h1>Ofertas disponibles</h1>
+        <p>Descubre los vuelos más baratos disponibles ahora mismo.</p>
+      </div>
+    </section>
+
+    <section class="bookings-page-section">
+      <div class="container">
+        <div class="bookings-toolbar">
+          <div>
+            <h2>Vuelos mas baratos</h2>
+            <p id="offersSummary">Cargando ofertas...</p>
+          </div>
+        </div>
+
+        <div id="offersContainer" class="results-grid">
+          <p>Cargando ofertas...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="bookingModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Realizar Reserva</h3>
+        <button class="modal-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="flightInfo" style="margin-bottom: 16px;"></p>
+        <label for="passengersInput">Número de pasajeros:</label>
+        <input type="number" id="passengersInput" min="1" max="9" value="1">
+        <p id="pricePreview" style="margin-top: 16px; font-weight: bold; color: #2563eb;"></p>
+      </div>
+      <div class="modal-footer">
+        <button id="bookingCancelBtn" class="btn-secondary">Cancelar</button>
+        <button id="bookingConfirmBtn" class="btn-primary">Confirmar Reserva</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/assets/js/ofertas.js"></script>
+</body>
+</html>
