@@ -2,34 +2,74 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Mis reservas | FlyNow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlyNow | Mis reservas</title>
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 
-<header class="site-header">
-  <div class="container header-content">
-    <div class="logo">✈ FlyNow</div>
-    <nav class="nav">
-      <a href="/busquedaVuelos.html">Buscar vuelos</a>
-      <a href="/misReservas.html">Mis reservas</a>
-      <a href="#" id="logoutLink">Cerrar sesión</a>
-    </nav>
-  </div>
-</header>
+  <header class="site-header">
+    <div class="container header-content">
+      <div class="logo">✈ FlyNow</div>
+      <nav class="nav">
+        <a href="/busquedaVuelos.html">Buscar vuelos</a>
+        <a href="/misReservas.html">Mis reservas</a>
+        <a href="#">Ofertas</a>
+        <a href="#">Ayuda</a>
+        <a href="#" id="logoutLink">Cerrar sesion</a>
+      </nav>
+    </div>
+  </header>
 
-<main>
-  <section class="account-section">
-    <div class="container">
-      <h2>Mis reservas</h2>
+  <main class="bookings-page">
+    <section class="page-hero">
+      <div class="container">
+        <span class="hero-badge">Gestion de reservas</span>
+        <h1>Mis reservas</h1>
+        <p>Consulta tus vuelos, revisa su estado y cancela una reserva si lo necesitas.</p>
+      </div>
+    </section>
 
-      <div id="bookingsContainer">
-        <p>Cargando reservas...</p>
+    <section class="bookings-page-section">
+      <div class="container">
+        <div class="bookings-toolbar">
+          <div>
+            <h2>Tus vuelos</h2>
+            <p id="bookingsSummary">Cargando reservas...</p>
+          </div>
+        </div>
+
+        <div id="bookingsContainer" class="bookings-list">
+          <p>Cargando reservas...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="cancelModal" class="modal hidden">
+    <div class="modal-overlay"></div>
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Cancelar reserva</h3>
+        <button type="button" class="modal-close" id="cancelModalClose">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <p id="cancelModalInfo"></p>
+
+        <div class="warning-box">
+          <strong>Advertencia</strong>
+          <p>No se devolvera el dinero. Esta accion no se puede deshacer. ¿Seguro que quieres continuar?</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" id="cancelKeepBtn" class="btn-secondary">Mantener reserva</button>
+        <button type="button" id="cancelConfirmBtn" class="btn-danger">Si, cancelar reserva</button>
       </div>
     </div>
-  </section>
-</main>
+  </div>
 
-<script src="/assets/js/misReservas.js"></script>
+  <script src="/assets/js/misReservas.js"></script>
 </body>
 </html>
