@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlyNow | Ayuda</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="container header-content">
+      <div class="logo">✈ FlyNow</div>
+      <nav class="nav">
+        <a href="/busquedaVuelos.html">Buscar vuelos</a>
+        <a href="/misReservas.html">Mis reservas</a>
+        <a href="/ofertas.html">Ofertas</a>
+        <a href="/ayuda.html">Ayuda</a>
+        <a href="#" id="logoutLink">Cerrar sesion</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="help-page">
+    <section class="page-hero">
+      <div class="container">
+        <span class="hero-badge">Centro de ayuda</span>
+        <h1>¿En qué podemos ayudarte?</h1>
+        <p>Resuelve tus dudas sobre búsquedas, reservas, cancelaciones y ofertas.</p>
+      </div>
+    </section>
+
+    <section class="help-section">
+      <div class="container">
+        <div class="help-grid">
+
+          <article class="help-card">
+            <h2>Buscar vuelos</h2>
+            <p>
+              Selecciona origen y destino en la pantalla principal para ver los vuelos disponibles.
+            </p>
+          </article>
+
+          <article class="help-card">
+            <h2>Reservar un vuelo</h2>
+            <p>
+              Cuando encuentres un vuelo que te interese, pulsa en <strong>Reservar</strong> y confirma la operación.
+            </p>
+          </article>
+
+          <article class="help-card">
+            <h2>Mis reservas</h2>
+            <p>
+              En esta sección puedes consultar tus reservas y revisar su estado.
+            </p>
+          </article>
+
+          <article class="help-card">
+            <h2>Cancelar una reserva</h2>
+            <p>
+              Desde Mis reservas puedes cancelar una reserva. La aplicación avisará de que no se devuelve el dinero.
+            </p>
+          </article>
+
+          <article class="help-card">
+            <h2>Ofertas</h2>
+            <p>
+              En Ofertas puedes ver vuelos económicos y filtrarlos por precio máximo o por tipo de vuelo.
+            </p>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="faq-section">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Preguntas frecuentes</h2>
+          <p>Las dudas más habituales de los usuarios de FlyNow.</p>
+        </div>
+
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary>¿Necesito iniciar sesión para reservar?</summary>
+            <p>Sí, debes iniciar sesión para poder crear una reserva.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>¿Puedo cancelar una reserva?</summary>
+            <p>Sí, puedes hacerlo desde la pantalla de Mis reservas.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>¿Se devuelve el dinero al cancelar?</summary>
+            <p>No, la aplicación muestra una advertencia indicando que no se devuelve el importe.</p>
+          </details>
+
+          <details class="faq-item">
+            <summary>¿Cómo sé si un vuelo está en oferta?</summary>
+            <p>En la pantalla de Ofertas verás los vuelos más baratos y sus etiquetas destacadas.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <section class="support-section">
+      <div class="container">
+        <div class="support-box">
+          <h2>Soporte</h2>
+          <p>Si necesitas ayuda adicional, puedes contactar con el equipo de FlyNow.</p>
+          <div class="support-info">
+            <p><strong>Email:</strong> soporte@flynow.com</p>
+            <p><strong>Telefono:</strong> +34 600 123 456</p>
+            <p><strong>Horario:</strong> Lunes a viernes, de 9:00 a 18:00</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const logoutLink = document.getElementById("logoutLink");
+
+    if (logoutLink) {
+      logoutLink.addEventListener("click", event => {
+        event.preventDefault();
+        localStorage.removeItem("flynowUser");
+        location.href = "/login.html";
+      });
+    }
+  </script>
+</body>
+</html>
