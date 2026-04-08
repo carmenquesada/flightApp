@@ -466,6 +466,11 @@ async function submitBooking() {
     const passengersInput = document.getElementById("passengersInput");
     const passengers = parseInt(passengersInput.value) || 1;
 
+    if (passengers < 1) {
+        alert("Debes indicar al menos 1 pasajero.");
+        return;
+    }
+
     const bookingRequest = {
         userId: currentUser.id,
         flightId: selectedFlightForBooking.id,
@@ -485,16 +490,8 @@ async function submitBooking() {
             body: JSON.stringify(bookingRequest)
         });
 
-        console.log("Booking created:", response);
-
-        // Show success message
         alert(`Reserva confirmada: ${response.bookingCode}`);
-
-        // Close modal
         closeBookingModal();
-
-        // Reload user bookings
-        await loadUserDashboard(currentUser.id);
 
     } catch (error) {
         console.error("Error creating booking:", error);
