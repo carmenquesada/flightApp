@@ -10,10 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentUser = requireAuthenticatedUser();
     setupLogout();
 
-    await Promise.all([
-        loadSearchOptions(),
-        loadUserDashboard(currentUser.id)
-    ]);
+    await loadSearchOptions();
 
     const form = document.getElementById("flightSearchForm");
     const originInput = document.getElementById("origin");
