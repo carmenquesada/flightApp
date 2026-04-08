@@ -95,7 +95,15 @@ public class BookingController {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Reserva no encontrada"));
 
         if (booking.getStatus().name().equals("CANCELLED")) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La reserva ya esta cancelada");
+            return new BookingResponse(
+                    booking.getId(),
+                    booking.getBookingCode(),
+                    booking.getStatus().toString(),
+                    booking.getPassengersCount(),
+                    booking.getTotalPrice(),
+                    booking.getCurrency().toString(),
+                    booking.getCreatedAt()
+            );
         }
 
         bookingRepository.cancelBooking(bookingId);
