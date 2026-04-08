@@ -78,7 +78,12 @@ async function callApi(path, options = {}) {
 async function loadBookings() {
     try {
         const bookings = await callApi(`/users/${encodeURIComponent(currentUser.id)}/bookings`);
-        renderBookings(bookings);
+
+        const activeBookings = Array.isArray(bookings)
+            ? bookings.filter(booking => booking.status !== "CANCELLED")
+            : [];
+
+        renderBookings(activeBookings);
     } catch (error) {
         document.getElementById("bookingsSummary").textContent = "No se pudieron cargar tus reservas.";
         document.getElementById("bookingsContainer").innerHTML = "<p>No se pudieron cargar tus reservas.</p>";
@@ -88,95 +93,31 @@ async function loadBookings() {
 
 function renderBookings(bookings) {
     const container = document.getElementById("bookingsContainer");
-    const summary = document.getElementById("bookingsSummary");
-
-    if (!Array.isArray(bookings) || bookings.length === 0) {
-        summary.textContent = "No tienes reservas registradas.";
-        container.innerHTML = `
-            <article class="empty-bookings">
-                <h3>Aun no tienes reservas</h3>
-                <p>Cuando reserves un vuelo, aparecera aqui con toda la informacion.</p>
-                <a href="/busquedaVuelos.html" class="btn-primary inline-action">Buscar vuelos</a>
-            </article>
-        `;
-        return;
-    }
-
-    summary.textContent = `Tienes ${bookings.length} reserva(s) registradas.`;
 
     container.innerHTML = bookings.map(booking => {
         const isCancelled = booking.status === "CANCELLED";
 
         return `
-            <article class="booking-card ${isCancelled ? "booking-cancelled" : ""}">
-                <div class="booking-card-top">
-                    <div>
-                        <p class="booking-code-label">Codigo de reserva</p>
-                        <h3>${booking.bookingCode}</h3>
-                    </div>
-
-                    <span class="booking-status ${isCancelled ? "status-cancelled" : "status-confirmed"}">
-                        ${formatStatus(booking.status)}
-                    </span>
+            <article class="booking-card">
+                <div class="booking-header">
+                    <strong>${booking.bookingCode}</strong>
+                    <span>${booking.status}</span>
                 </div>
 
-                <div class="booking-route">
-                    <div class="route-point">
-                        <span class="route-iata">${booking.originIata}</span>
-                        <p>Origen</p>
-                    </div>
+                <p>${booking.originIata} → ${booking.destinationIata}</p>
+                <p>${booking.totalPrice} ${booking.currency}</p>
 
-                    <div class="route-line">✈</div>
-
-                    <div class="route-point">
-                        <span class="route-iata">${booking.destinationIata}</span>
-                        <p>Destino</p>
-                    </div>
-                </div>
-
-                <div class="booking-meta">
-                    <div class="booking-meta-item">
-                        <span>Vuelo</span>
-                        <strong>${booking.flightNumber || "-"}</strong>
-                    </div>
-
-                    <div class="booking-meta-item">
-                        <span>Aerolinea</span>
-                        <strong>${booking.airlineName || "-"}</strong>
-                    </div>
-
-                    <div class="booking-meta-item">
-                        <span>Salida</span>
-                        <strong>${formatDateTime(booking.departureTime)}</strong>
-                    </div>
-
-                    <div class="booking-meta-item">
-                        <span>Llegada</span>
-                        <strong>${formatDateTime(booking.arrivalTime)}</strong>
-                    </div>
-
-                    <div class="booking-meta-item">
-                        <span>Pasajeros</span>
-                        <strong>${booking.passengersCount}</strong>
-                    </div>
-
-                    <div class="booking-meta-item">
-                        <span>Total</span>
-                        <strong>${formatPrice(booking.totalPrice, booking.currency)}</strong>
-                    </div>
-                </div>
-
-                <div class="booking-card-footer">
-                    <div class="booking-created">
-                        Reservada el ${formatDateTime(booking.createdAt)}
-                    </div>
-
-                    ${
-                        isCancelled
-                            ? `<button type="button" class="btn-secondary" disabled>Reserva cancelada</button>`
-                            : `<button type="button" class="btn-danger cancel-booking-btn" data-booking-id="${booking.id}" data-booking-code="${booking.bookingCode}" data-origin="${booking.originIata}" data-destination="${booking.destinationIata}">Cancelar reserva</button>`
-                    }
-                </div>
+                ${
+                    isCancelled
+                        ? `<button disabled>Reserva cancelada</button>`
+                        : `<button class="cancel-booking-btn"
+                            data-booking-id="${booking.bookingId}"
+                            data-booking-code="${booking.bookingCode}"
+                            data-origin="${booking.originIata}"
+                            data-destination="${booking.destinationIata}">
+                            Cancelar reserva
+                           </button>`
+                }
             </article>
         `;
     }).join("");
@@ -269,7 +210,7 @@ async function confirmCancelBooking() {
         await loadBookings();
         alert("La reserva ha sido cancelada correctamente.");
     } catch (error) {
-        console.error(error);
+        console.error("Error al cancelar reserva:", error);
         alert("No se pudo cancelar la reserva.");
     } finally {
         confirmBtn.disabled = false;
