@@ -54,20 +54,34 @@ function setupLogout() {
 }
 
 async function callApi(path, options = {}) {
+    const candidates = [
+        "http://localhost:8081/api",
+        `${globalThis.location.origin}/api`,
+        "http://localhost:8080/api"
+    ];
+
     let lastError;
 
-    for (const candidate of API_ROOT_CANDIDATES) {
+    for (const candidate of candidates) {
         const url = `${candidate}${path}`;
 
         try {
             const response = await fetch(url, options);
 
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status} (${url})`);
+                const errorText = await response.text();
+                throw new Error(`HTTP ${response.status} en ${url} -> ${errorText}`);
             }
 
-            return await response.json();
+            const contentType = response.headers.get("content-type") || "";
+
+            if (contentType.includes("application/json")) {
+                return await response.json();
+            }
+
+            return null;
         } catch (error) {
+            console.error("Fallo API:", error);
             lastError = error;
         }
     }
@@ -93,31 +107,104 @@ async function loadBookings() {
 
 function renderBookings(bookings) {
     const container = document.getElementById("bookingsContainer");
+    const summary = document.getElementById("bookingsSummary");
+
+    if (!Array.isArray(bookings) || bookings.length === 0) {
+        summary.textContent = "No tienes reservas registradas.";
+        container.innerHTML = `
+            <article class="empty-bookings">
+                <h3>Aun no tienes reservas</h3>
+                <p>Cuando reserves un vuelo, aparecera aqui con toda la informacion.</p>
+                <a href="/busquedaVuelos.html" class="btn-primary inline-action">Buscar vuelos</a>
+            </article>
+        `;
+        return;
+    }
+
+    summary.textContent = `Tienes ${bookings.length} reserva(s) registradas.`;
 
     container.innerHTML = bookings.map(booking => {
+
+        console.log("BOOKING:", booking);
+        
         const isCancelled = booking.status === "CANCELLED";
 
         return `
-            <article class="booking-card">
-                <div class="booking-header">
-                    <strong>${booking.bookingCode}</strong>
-                    <span>${booking.status}</span>
+            <article class="booking-card ${isCancelled ? "booking-cancelled" : ""}">
+                <div class="booking-card-top">
+                    <div>
+                        <p class="booking-code-label">Codigo de reserva</p>
+                        <h3>${booking.bookingCode}</h3>
+                    </div>
+
+                    <span class="booking-status ${isCancelled ? "status-cancelled" : "status-confirmed"}">
+                        ${formatStatus(booking.status)}
+                    </span>
                 </div>
 
-                <p>${booking.originIata} → ${booking.destinationIata}</p>
-                <p>${booking.totalPrice} ${booking.currency}</p>
+                <div class="booking-route">
+                    <div class="route-point">
+                        <span class="route-iata">${booking.originIata}</span>
+                        <p>Origen</p>
+                    </div>
 
-                ${
-                    isCancelled
-                        ? `<button disabled>Reserva cancelada</button>`
-                        : `<button class="cancel-booking-btn"
-                            data-booking-id="${booking.bookingId}"
-                            data-booking-code="${booking.bookingCode}"
-                            data-origin="${booking.originIata}"
-                            data-destination="${booking.destinationIata}">
-                            Cancelar reserva
-                           </button>`
-                }
+                    <div class="route-line">✈</div>
+
+                    <div class="route-point">
+                        <span class="route-iata">${booking.destinationIata}</span>
+                        <p>Destino</p>
+                    </div>
+                </div>
+
+                <div class="booking-meta">
+                    <div class="booking-meta-item">
+                        <span>Vuelo</span>
+                        <strong>${booking.flightNumber || "-"}</strong>
+                    </div>
+
+                    <div class="booking-meta-item">
+                        <span>Aerolinea</span>
+                        <strong>${booking.airlineName || "-"}</strong>
+                    </div>
+
+                    <div class="booking-meta-item">
+                        <span>Salida</span>
+                        <strong>${formatDateTime(booking.departureTime)}</strong>
+                    </div>
+
+                    <div class="booking-meta-item">
+                        <span>Llegada</span>
+                        <strong>${formatDateTime(booking.arrivalTime)}</strong>
+                    </div>
+
+                    <div class="booking-meta-item">
+                        <span>Pasajeros</span>
+                        <strong>${booking.passengersCount}</strong>
+                    </div>
+
+                    <div class="booking-meta-item">
+                        <span>Total</span>
+                        <strong>${formatPrice(booking.totalPrice, booking.currency)}</strong>
+                    </div>
+                </div>
+
+                <div class="booking-card-footer">
+                    <div class="booking-created">
+                        Reservada el ${formatDateTime(booking.createdAt)}
+                    </div>
+
+                    ${
+                        isCancelled
+                            ? `<button type="button" class="btn-secondary" disabled>Reserva cancelada</button>`
+                            : `<button type="button" class="btn-danger cancel-booking-btn"
+                                 data-booking-id="${booking.bookingId}"
+                                 data-booking-code="${booking.bookingCode}"
+                                 data-origin="${booking.originIata}"
+                                 data-destination="${booking.destinationIata}">
+                                 Cancelar reserva
+                               </button>`
+                    }
+                </div>
             </article>
         `;
     }).join("");
@@ -130,6 +217,8 @@ function bindCancelButtons() {
 
     buttons.forEach(button => {
         button.addEventListener("click", () => {
+            console.log("ID reserva a cancelar:", button.dataset.bookingId);
+
             bookingToCancel = {
                 id: button.dataset.bookingId,
                 bookingCode: button.dataset.bookingCode,
@@ -202,6 +291,8 @@ async function confirmCancelBooking() {
         confirmBtn.disabled = true;
         confirmBtn.textContent = "Cancelando...";
 
+        console.log("Cancelando reserva con id:", bookingToCancel.id);
+
         await callApi(`/bookings/${encodeURIComponent(bookingToCancel.id)}/cancel`, {
             method: "PATCH"
         });
@@ -211,7 +302,7 @@ async function confirmCancelBooking() {
         alert("La reserva ha sido cancelada correctamente.");
     } catch (error) {
         console.error("Error al cancelar reserva:", error);
-        alert("No se pudo cancelar la reserva.");
+        alert(`No se pudo cancelar la reserva.\n${error.message}`);
     } finally {
         confirmBtn.disabled = false;
         confirmBtn.textContent = "Si, cancelar reserva";
