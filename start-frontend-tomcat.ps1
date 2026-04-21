@@ -10,6 +10,7 @@ $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $sourcePublicDir = Join-Path $projectRoot "frontend\public"
 $sourceAssets = Join-Path $projectRoot "frontend\assets"
 $frontendRoute = "http://localhost:8080/login.html"
+$cacheBuster = [DateTimeOffset]::Now.ToUnixTimeSeconds()
 
 if (-not (Test-Path $sourcePublicDir)) {
     throw "No se encontro la carpeta public en: $sourcePublicDir"
@@ -66,7 +67,15 @@ foreach ($page in $legacyPages) {
 
 # Publica todas las paginas del frontend.
 Get-ChildItem -Path $sourcePublicDir -Filter "*.html" -File | ForEach-Object {
-    Copy-Item -Path $_.FullName -Destination (Join-Path $rootWebApp $_.Name) -Force
+    $destinationPath = Join-Path $rootWebApp $_.Name
+    Copy-Item -Path $_.FullName -Destination $destinationPath -Force
+
+    # Fuerza recarga de CSS/JS tras cada despliegue para evitar cache stale del navegador.
+    $html = Get-Content -Path $destinationPath -Raw
+    $assetPattern = '(?<attr>(?:href|src)="/assets/[^"?]+)(?:\?[^\"]*)?(?<end>")'
+    $assetReplacement = '${attr}?v=' + $cacheBuster + '${end}'
+    $html = [regex]::Replace($html, $assetPattern, $assetReplacement)
+    Set-Content -Path $destinationPath -Value $html -Encoding UTF8
 }
 
 # Alias legacy para mantener compatibilidad con URLs antiguas.
@@ -121,7 +130,6 @@ try {
 }
 
 if ($OpenBrowser) {
-    $cacheBuster = [DateTimeOffset]::Now.ToUnixTimeSeconds()
     try {
         [System.Diagnostics.Process]::Start("$frontendRoute`?v=$cacheBuster")
     } catch {

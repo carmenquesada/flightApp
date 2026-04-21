@@ -5,6 +5,7 @@ const API_ROOT_CANDIDATES = [
 ];
 
 let currentUser = null;
+let cityLabelByIata = new Map();
 
 document.addEventListener("DOMContentLoaded", async () => {
     currentUser = requireAuthenticatedUser();
@@ -122,11 +123,13 @@ function renderBookings(bookings) {
 }
 
 async function loadSearchOptions() {
+    await loadCityLabels();
+
     try {
         const options = await callApi("/flights/options");
         const parsed = normalizeOptionsPayload(options);
-        fillSelect("origin", parsed.origins, "Selecciona origen");
-        fillSelect("destination", parsed.destinations, "Selecciona destino");
+        fillSelect("origin", parsed.origins, "Selecciona origen", formatLocationLabel);
+        fillSelect("destination", parsed.destinations, "Selecciona destino", formatLocationLabel);
         applyQueryParamSelections();
     } catch (error) {
         console.warn("No se pudo cargar /flights/options. Se intentara con /flights", error);
@@ -139,14 +142,48 @@ async function loadSearchOptions() {
                 throw new Error("No hay vuelos para construir opciones");
             }
 
-            fillSelect("origin", parsed.origins, "Selecciona origen");
-            fillSelect("destination", parsed.destinations, "Selecciona destino");
+            fillSelect("origin", parsed.origins, "Selecciona origen", formatLocationLabel);
+            fillSelect("destination", parsed.destinations, "Selecciona destino", formatLocationLabel);
             applyQueryParamSelections();
         } catch (fallbackError) {
             showError("No se pudieron cargar los origenes y destinos.");
             console.error(fallbackError);
         }
     }
+}
+
+async function loadCityLabels() {
+    try {
+        const cities = await callApi("/cities");
+
+        if (!Array.isArray(cities)) {
+            return;
+        }
+
+        cityLabelByIata = new Map(
+            cities
+                .map(city => {
+                    const iata = String(city?.iataCode || "").trim().toUpperCase();
+                    const cityName = String(city?.cityName || "").trim();
+
+                    if (!iata || !cityName) {
+                        return null;
+                    }
+
+                    return [iata, cityName];
+                })
+                .filter(Boolean)
+        );
+    } catch (error) {
+        console.warn("No se pudieron cargar etiquetas de ciudades; se mostrara IATA.", error);
+    }
+}
+
+function formatLocationLabel(iata) {
+    const code = String(iata || "").trim().toUpperCase();
+    const cityName = cityLabelByIata.get(code);
+
+    return cityName ? `${cityName} (${code})` : code;
 }
 
 function normalizeOptionsPayload(options) {
@@ -244,7 +281,7 @@ async function callApi(path, options = {}) {
     throw lastError;
 }
 
-function fillSelect(selectId, values, placeholderText) {
+function fillSelect(selectId, values, placeholderText, labelResolver = value => value) {
     const select = document.getElementById(selectId);
     const sorted = [...values].sort((a, b) => String(a).localeCompare(String(b), "es"));
 
@@ -258,7 +295,7 @@ function fillSelect(selectId, values, placeholderText) {
     sorted.forEach(value => {
         const option = document.createElement("option");
         option.value = value;
-        option.textContent = value;
+        option.textContent = labelResolver(value);
         select.appendChild(option);
     });
 }
@@ -311,7 +348,7 @@ function showResults(flights, origin, destination) {
         return;
     }
 
-    info.textContent = `${flights.length} vuelos encontrados para ${origin} -> ${destination}`;
+    info.textContent = `${flights.length} vuelos encontrados para ${formatLocationLabel(origin)} -> ${formatLocationLabel(destination)}`;
 
     flights.forEach(flight => {
         const card = document.createElement("article");
@@ -321,7 +358,7 @@ function showResults(flights, origin, destination) {
             <div class="flight-route">
                 <div>
                     <span class="airport-code">${flight.originIata}</span>
-                    <p>${flight.originIata}</p>
+                    <p>${formatLocationLabel(flight.originIata)}</p>
                 </div>
 
                 <div class="flight-line">
@@ -330,7 +367,7 @@ function showResults(flights, origin, destination) {
 
                 <div>
                     <span class="airport-code">${flight.destinationIata}</span>
-                    <p>${flight.destinationIata}</p>
+                    <p>${formatLocationLabel(flight.destinationIata)}</p>
                 </div>
             </div>
 
@@ -434,7 +471,7 @@ function openBookingModal(flight, user) {
     const flightInfo = document.getElementById("flightInfo");
     const passengersInput = document.getElementById("passengersInput");
 
-    flightInfo.textContent = `${flight.originIata} → ${flight.destinationIata} | ${flight.flightNumber} (${flight.airlineName})`;
+    flightInfo.textContent = `${formatLocationLabel(flight.originIata)} → ${formatLocationLabel(flight.destinationIata)} | ${flight.flightNumber} (${flight.airlineName})`;
     passengersInput.value = 1;
 
     updatePricePreview();

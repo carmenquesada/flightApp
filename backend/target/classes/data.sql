@@ -3,6 +3,14 @@ DROP TABLE IF EXISTS bookings;
 DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS flights;
 DROP TABLE IF EXISTS airports;
+DROP TABLE IF EXISTS cities;
+
+CREATE TABLE cities (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    iata_code VARCHAR(3) NOT NULL UNIQUE,
+    city_name VARCHAR(100) NOT NULL,
+    country VARCHAR(100) NOT NULL
+);
 
 CREATE TABLE airports (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -62,6 +70,21 @@ CREATE TABLE passengers (
     birth_date DATE,
     CONSTRAINT fk_passengers_booking_id FOREIGN KEY (booking_id) REFERENCES bookings(id)
 );
+
+INSERT INTO cities (iata_code, city_name, country) VALUES
+('MAD', 'Madrid', 'Spain'),
+('BCN', 'Barcelona', 'Spain'),
+('SVQ', 'Seville', 'Spain'),
+('OPO', 'Porto', 'Portugal'),
+('LIS', 'Lisbon', 'Portugal'),
+('CDG', 'Paris', 'France'),
+('FCO', 'Rome', 'Italy'),
+('LHR', 'London', 'United Kingdom'),
+('PMI', 'Palma', 'Spain'),
+('BIO', 'Bilbao', 'Spain'),
+('TFN', 'Tenerife', 'Spain'),
+('AMS', 'Amsterdam', 'Netherlands'),
+('FRA', 'Frankfurt', 'Germany');
 
 INSERT INTO airports (iata_code, name, city, country) VALUES
 ('MAD', 'Adolfo Suarez Madrid-Barajas Airport', 'Madrid', 'Spain'),
