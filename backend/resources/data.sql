@@ -34,6 +34,7 @@ CREATE TABLE flights (
     base_price DECIMAL(10,2) NOT NULL,
     currency VARCHAR(3) NOT NULL,
     available_seats INT NOT NULL,
+    travel_class VARCHAR(20) NOT NULL DEFAULT 'ECONOMY',
     CONSTRAINT fk_flights_origin_iata FOREIGN KEY (origin_iata) REFERENCES airports(iata_code),
     CONSTRAINT fk_flights_destination_iata FOREIGN KEY (destination_iata) REFERENCES airports(iata_code)
 );
@@ -162,6 +163,33 @@ INSERT INTO flights (
 ('AF2242', 'AF', 'Air France', 'CDG', 'MAD', '2026-05-30 20:15:00', '2026-05-30 22:25:00', 130, 0, 121.00, 'EUR', 72),
 ('TP2243', 'TP', 'TAP Air Portugal', 'LIS', 'OPO', '2026-05-31 09:15:00', '2026-05-31 10:05:00', 50, 0, 24.99, 'EUR', 125),
 ('TP2244', 'TP', 'TAP Air Portugal', 'OPO', 'LIS', '2026-05-31 18:20:00', '2026-05-31 19:10:00', 50, 0, 26.99, 'EUR', 123);
+
+UPDATE flights
+SET travel_class = 'PREMIUM'
+WHERE flight_number IN ('AF1301', 'AZ0058', 'BA0471', 'AF2209', 'AF2210', 'BA2213', 'BA2214', 'LH2229', 'LH2230', 'KL2231', 'KL2232');
+
+UPDATE flights
+SET travel_class = 'BUSINESS'
+WHERE flight_number IN ('IB2221', 'BA2222', 'IB2227', 'AZ2228', 'IB2241', 'AF2242');
+
+INSERT INTO flights (
+    flight_number, airline_code, airline_name,
+    origin_iata, destination_iata,
+    departure_time, arrival_time,
+    duration_minutes, stops, base_price, currency, available_seats, travel_class
+) VALUES
+('IB3001', 'IB', 'Iberia', 'MAD', 'BCN', '2026-01-09 07:30:00', '2026-01-09 08:50:00', 80, 0, 61.90, 'EUR', 104, 'ECONOMY'),
+('VY3002', 'VY', 'Vueling', 'BCN', 'MAD', '2026-01-09 20:10:00', '2026-01-09 21:30:00', 80, 0, 59.90, 'EUR', 101, 'ECONOMY'),
+('TP3003', 'TP', 'TAP Air Portugal', 'MAD', 'LIS', '2026-02-14 09:05:00', '2026-02-14 10:20:00', 75, 0, 73.00, 'EUR', 86, 'PREMIUM'),
+('TP3004', 'TP', 'TAP Air Portugal', 'LIS', 'MAD', '2026-02-14 17:55:00', '2026-02-14 19:10:00', 75, 0, 76.00, 'EUR', 84, 'PREMIUM'),
+('FR3005', 'FR', 'Ryanair', 'SVQ', 'PMI', '2026-04-03 06:40:00', '2026-04-03 08:00:00', 80, 0, 33.99, 'EUR', 136, 'ECONOMY'),
+('UX3006', 'UX', 'Air Europa', 'PMI', 'SVQ', '2026-04-03 19:15:00', '2026-04-03 20:35:00', 80, 0, 36.49, 'EUR', 130, 'ECONOMY'),
+('IB3007', 'IB', 'Iberia', 'MAD', 'FRA', '2026-07-11 11:30:00', '2026-07-11 14:00:00', 150, 0, 145.00, 'EUR', 58, 'BUSINESS'),
+('LH3008', 'LH', 'Lufthansa', 'FRA', 'MAD', '2026-07-11 18:45:00', '2026-07-11 21:15:00', 150, 0, 141.00, 'EUR', 60, 'PREMIUM'),
+('KL3009', 'KL', 'KLM', 'AMS', 'BCN', '2026-09-18 08:20:00', '2026-09-18 10:50:00', 150, 0, 124.00, 'EUR', 67, 'PREMIUM'),
+('KL3010', 'KL', 'KLM', 'BCN', 'AMS', '2026-09-18 15:35:00', '2026-09-18 18:05:00', 150, 0, 126.00, 'EUR', 66, 'PREMIUM'),
+('IB3011', 'IB', 'Iberia', 'MAD', 'TFN', '2026-12-21 07:00:00', '2026-12-21 09:10:00', 130, 0, 88.90, 'EUR', 92, 'ECONOMY'),
+('UX3012', 'UX', 'Air Europa', 'TFN', 'MAD', '2026-12-21 17:25:00', '2026-12-21 19:35:00', 130, 0, 90.90, 'EUR', 90, 'ECONOMY');
 
 INSERT INTO users (name, email, password_hash, phone) VALUES
 ('Ana Martinez', 'ana@flynow.test', 'demo123', '+34600111222'),

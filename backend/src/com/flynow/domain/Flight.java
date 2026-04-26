@@ -1,6 +1,7 @@
 package com.flynow.domain;
 
 import com.flynow.domain.enums.CurrencyCode;
+import com.flynow.domain.enums.TravelClass;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,4 +34,5 @@ public class Flight {
     private CurrencyCode currency;
 
     private Integer availableSeats;
+    private TravelClass travelClass;
 }

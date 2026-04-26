@@ -6,6 +6,8 @@ const API_ROOT_CANDIDATES = [
 
 let currentUser = null;
 let cityLabelByIata = new Map();
+let currentTripType = "roundtrip";
+let pendingRoundTripSelection = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     currentUser = requireAuthenticatedUser();
@@ -16,22 +18,81 @@ document.addEventListener("DOMContentLoaded", async () => {
     const form = document.getElementById("flightSearchForm");
     const originInput = document.getElementById("origin");
     const destinationInput = document.getElementById("destination");
+    const departureDateInput = document.getElementById("departureDate");
+    const returnDateInput = document.getElementById("returnDate");
+    const passengersInput = document.getElementById("passengers");
+    const travelClassInput = document.getElementById("travelClass");
+
+    setupTripTypeToggle();
 
     form.addEventListener("submit", async event => {
         event.preventDefault();
 
         const origin = originInput.value.trim().toUpperCase();
         const destination = destinationInput.value.trim().toUpperCase();
+        const departureDate = departureDateInput?.value?.trim() || "";
+        const returnDate = returnDateInput?.value?.trim() || "";
+        const passengersValue = passengersInput?.value?.trim() || "";
+        const travelClassValue = travelClassInput?.value?.trim() || "";
 
         if (origin === "" || destination === "") {
             alert("Por favor, completa origen y destino");
             return;
         }
 
+        if (origin === destination) {
+            alert("Origen y destino deben ser distintos.");
+            return;
+        }
+
+        if (currentTripType === "roundtrip" && returnDate === "") {
+            alert("Para ida y vuelta debes indicar fecha de vuelta.");
+            return;
+        }
+
+        if (departureDate && returnDate && returnDate < departureDate) {
+            alert("La fecha de vuelta no puede ser anterior a la fecha de ida.");
+            return;
+        }
+
+        const searchCriteria = {
+            origin,
+            destination,
+            departureDate,
+            returnDate,
+            passengers: passengersValue,
+            travelClass: travelClassValue
+        };
+
+        resetRoundTripSelection();
+
         try {
-            const flights = await fetchFlights(origin, destination);
-            console.log("Vuelos recibidos:", flights);
-            showResults(flights, origin, destination);
+            if (currentTripType === "oneway") {
+                const flights = await fetchFlights({
+                    origin,
+                    destination,
+                    departureDate,
+                    passengers: passengersValue,
+                    travelClass: travelClassValue
+                });
+
+                showResults(flights, origin, destination);
+                return;
+            }
+
+            const outboundFlights = await fetchFlights({
+                origin,
+                destination,
+                departureDate,
+                passengers: passengersValue,
+                travelClass: travelClassValue
+            });
+
+            showResults(outboundFlights, origin, destination, {
+                actionLabel: "Seleccionar ida",
+                onAction: flight => selectOutboundFlight(flight, searchCriteria),
+                selectionMessage: "Paso 1 de 2: selecciona tu vuelo de ida."
+            });
         } catch (error) {
             showError("No se pudieron cargar los vuelos. Revisa que el backend este arrancado.");
             console.error(error);
@@ -40,6 +101,76 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     setupBookingModal();
 });
+
+function setupTripTypeToggle() {
+    const buttons = [...document.querySelectorAll(".trip-btn")];
+    const returnDateGroup = document.getElementById("returnDateGroup");
+    const returnDateInput = document.getElementById("returnDate");
+
+    if (buttons.length === 0 || !returnDateGroup || !returnDateInput) {
+        return;
+    }
+
+    buttons.forEach(button => {
+        button.addEventListener("click", () => {
+            currentTripType = button.dataset.tripType === "oneway" ? "oneway" : "roundtrip";
+
+            buttons.forEach(item => {
+                item.classList.toggle("active", item === button);
+            });
+
+            const oneWayMode = currentTripType === "oneway";
+            returnDateGroup.classList.toggle("hidden", oneWayMode);
+            returnDateInput.required = !oneWayMode;
+
+            if (oneWayMode) {
+                returnDateInput.value = "";
+            }
+
+            resetRoundTripSelection();
+        });
+    });
+}
+
+function resetRoundTripSelection() {
+    pendingRoundTripSelection = null;
+    setSelectionInfo("");
+}
+
+async function selectOutboundFlight(outboundFlight, criteria) {
+    pendingRoundTripSelection = {
+        criteria,
+        outboundFlight
+    };
+
+    try {
+        const returnFlights = await fetchFlights({
+            origin: criteria.destination,
+            destination: criteria.origin,
+            departureDate: criteria.returnDate,
+            passengers: criteria.passengers,
+            travelClass: criteria.travelClass
+        });
+
+        const outboundArrival = new Date(outboundFlight.arrivalTime).getTime();
+        const validReturnFlights = returnFlights.filter(flight => {
+            const departureTime = new Date(flight.departureTime).getTime();
+            return Number.isFinite(outboundArrival) ? departureTime >= outboundArrival : true;
+        });
+
+        const selectedOutboundLabel = `${formatLocationLabel(outboundFlight.originIata)} → ${formatLocationLabel(outboundFlight.destinationIata)} · ${formatDateTime(outboundFlight.departureTime)}`;
+
+        showResults(validReturnFlights, criteria.destination, criteria.origin, {
+            actionLabel: "Reservar ida y vuelta",
+            onAction: returnFlight => openBookingModal([outboundFlight, returnFlight]),
+            selectionMessage: `Paso 2 de 2: selecciona tu vuelo de vuelta. Ida elegida: ${selectedOutboundLabel}`,
+            emptyMessage: "No hay vuelos de vuelta que encajen con tu selección de ida."
+        });
+    } catch (error) {
+        showError("No se pudieron cargar los vuelos de vuelta.");
+        console.error(error);
+    }
+}
 
 function requireAuthenticatedUser() {
     const rawUser = globalThis.localStorage.getItem("flynowUser");
@@ -52,7 +183,7 @@ function requireAuthenticatedUser() {
     try {
         const user = JSON.parse(rawUser);
 
-        if (!user || !user.id) {
+        if (!user?.id) {
             globalThis.localStorage.removeItem("flynowUser");
             globalThis.location.href = "/login.html";
             throw new Error("Sesion invalida");
@@ -247,16 +378,28 @@ function mergeUniqueOptions(origins, destinations) {
         .sort((a, b) => String(a).localeCompare(String(b), "es"));
 }
 
-async function fetchFlights(origin, destination) {
-    const response = await fetch(
-        `http://localhost:8081/api/flights?origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`
-    );
+async function fetchFlights(filters) {
+    const params = new URLSearchParams();
+    params.set("origin", filters.origin);
+    params.set("destination", filters.destination);
 
-    if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+    if (filters.departureDate) {
+        params.set("departureDate", filters.departureDate);
     }
 
-    return await response.json();
+    if (filters.returnDate) {
+        params.set("returnDate", filters.returnDate);
+    }
+
+    if (filters.passengers) {
+        params.set("passengers", filters.passengers);
+    }
+
+    if (filters.travelClass) {
+        params.set("travelClass", filters.travelClass);
+    }
+
+    return await callApi(`/flights?${params.toString()}`);
 }
 
 async function callApi(path, options = {}) {
@@ -332,9 +475,14 @@ function filterFlightsByRoute(flights, origin, destination) {
     });
 }
 
-function showResults(flights, origin, destination) {
+function showResults(flights, origin, destination, options = {}) {
     const container = document.getElementById("resultsContainer");
     const info = document.getElementById("resultsInfo");
+    const actionLabel = options.actionLabel || "Reservar";
+    const onAction = typeof options.onAction === "function"
+        ? options.onAction
+        : flight => openBookingModal([flight]);
+    const emptyMessage = options.emptyMessage || `No hay vuelos para ${origin} -> ${destination}`;
 
     if (!container || !info) {
         console.error("No existe resultsContainer o resultsInfo");
@@ -342,9 +490,10 @@ function showResults(flights, origin, destination) {
     }
 
     container.innerHTML = "";
+    setSelectionInfo(options.selectionMessage || "");
 
     if (!Array.isArray(flights) || flights.length === 0) {
-        info.textContent = `No hay vuelos para ${origin} -> ${destination}`;
+        info.textContent = emptyMessage;
         return;
     }
 
@@ -374,11 +523,11 @@ function showResults(flights, origin, destination) {
             <div class="flight-details">
                 <div>
                     <strong>${formatTime(flight.departureTime)}</strong>
-                    <p>Salida</p>
+                    <p>Salida · ${formatDate(flight.departureTime)}</p>
                 </div>
                 <div>
                     <strong>${formatTime(flight.arrivalTime)}</strong>
-                    <p>Llegada</p>
+                    <p>Llegada · ${formatDate(flight.arrivalTime)}</p>
                 </div>
                 <div>
                     <strong>${formatDuration(flight.durationMinutes)}</strong>
@@ -390,11 +539,11 @@ function showResults(flights, origin, destination) {
                 </div>
             </div>
 
-            <button type="button" class="reserve-button">Reservar</button>
+            <button type="button" class="reserve-button">${actionLabel}</button>
         `;
 
         const reserveButton = card.querySelector(".reserve-button");
-        reserveButton.addEventListener("click", () => openBookingModal(flight));
+        reserveButton.addEventListener("click", () => onAction(flight));
 
         container.appendChild(card);
     });
@@ -403,6 +552,17 @@ function showResults(flights, origin, destination) {
 function showError(message) {
     const info = document.getElementById("resultsInfo");
     info.textContent = message;
+    setSelectionInfo("");
+}
+
+function setSelectionInfo(message) {
+    const info = document.getElementById("selectionInfo");
+
+    if (!info) {
+        return;
+    }
+
+    info.textContent = message || "";
 }
 
 function formatTime(isoDateTime) {
@@ -417,6 +577,20 @@ function formatTime(isoDateTime) {
         minute: "2-digit",
         hour12: false
     });
+}
+
+function formatDate(isoDateTime) {
+    const date = new Date(isoDateTime);
+
+    if (Number.isNaN(date.getTime())) {
+        return "-";
+    }
+
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear());
+
+    return `${day}/${month}/${year}`;
 }
 
 function formatDateTime(isoDateTime) {
@@ -445,7 +619,6 @@ function formatDuration(minutes) {
 
 // Booking Modal Functions
 function setupBookingModal() {
-    const modal = document.getElementById("bookingModal");
     const closeBtn = document.querySelector(".modal-close");
     const cancelBtn = document.getElementById("bookingCancelBtn");
     const confirmBtn = document.getElementById("bookingConfirmBtn");
@@ -462,16 +635,28 @@ function setupBookingModal() {
     overlay.addEventListener("click", closeBookingModal);
 }
 
-let selectedFlightForBooking = null;
+let selectedFlightsForBooking = [];
 
-function openBookingModal(flight, user) {
-    selectedFlightForBooking = flight;
+function openBookingModal(flights) {
+    selectedFlightsForBooking = Array.isArray(flights) ? flights : [flights];
 
     const modal = document.getElementById("bookingModal");
+    const modalTitle = document.getElementById("bookingModalTitle");
     const flightInfo = document.getElementById("flightInfo");
     const passengersInput = document.getElementById("passengersInput");
 
-    flightInfo.textContent = `${formatLocationLabel(flight.originIata)} → ${formatLocationLabel(flight.destinationIata)} | ${flight.flightNumber} (${flight.airlineName})`;
+    const lines = selectedFlightsForBooking.map((flight, index) => {
+        let legTitle = "Vuelo";
+
+        if (selectedFlightsForBooking.length > 1) {
+            legTitle = index === 0 ? "Ida" : "Vuelta";
+        }
+
+        return `${legTitle}: ${formatLocationLabel(flight.originIata)} → ${formatLocationLabel(flight.destinationIata)} | ${flight.flightNumber} (${flight.airlineName})`;
+    });
+
+    modalTitle.textContent = selectedFlightsForBooking.length > 1 ? "Reservar ida y vuelta" : "Realizar Reserva";
+    flightInfo.innerHTML = lines.join("<br>");
     passengersInput.value = 1;
 
     updatePricePreview();
@@ -482,52 +667,66 @@ function openBookingModal(flight, user) {
 function closeBookingModal() {
     const modal = document.getElementById("bookingModal");
     modal.classList.add("hidden");
-    selectedFlightForBooking = null;
+    selectedFlightsForBooking = [];
 }
 
 function updatePricePreview() {
-    if (!selectedFlightForBooking) return;
+    if (!Array.isArray(selectedFlightsForBooking) || selectedFlightsForBooking.length === 0) {
+        return;
+    }
 
     const passengersInput = document.getElementById("passengersInput");
     const pricePreview = document.getElementById("pricePreview");
 
-    const passengers = parseInt(passengersInput.value) || 1;
-    const totalPrice = selectedFlightForBooking.basePrice * passengers;
+    const passengers = Number.parseInt(passengersInput.value, 10) || 1;
+    const totalBasePrice = selectedFlightsForBooking
+        .map(flight => Number(flight.basePrice) || 0)
+        .reduce((sum, value) => sum + value, 0);
+    const totalPrice = totalBasePrice * passengers;
+    const currency = selectedFlightsForBooking[0]?.currency || "";
 
-    pricePreview.textContent = `Total: ${totalPrice.toFixed(2)} ${selectedFlightForBooking.currency}`;
+    pricePreview.textContent = `Total: ${totalPrice.toFixed(2)} ${currency}`;
 }
 
 async function submitBooking() {
-    if (!selectedFlightForBooking || !currentUser) return;
+    if (!Array.isArray(selectedFlightsForBooking) || selectedFlightsForBooking.length === 0 || !currentUser) {
+        return;
+    }
 
     const passengersInput = document.getElementById("passengersInput");
-    const passengers = parseInt(passengersInput.value) || 1;
+    const passengers = Number.parseInt(passengersInput.value, 10) || 1;
 
     if (passengers < 1) {
         alert("Debes indicar al menos 1 pasajero.");
         return;
     }
 
-    const bookingRequest = {
-        userId: currentUser.id,
-        flightId: selectedFlightForBooking.id,
-        passengersCount: passengers
-    };
-
     try {
         const confirmBtn = document.getElementById("bookingConfirmBtn");
         confirmBtn.disabled = true;
         confirmBtn.textContent = "Procesando...";
 
-        const response = await callApi("/bookings", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(bookingRequest)
-        });
+        const bookingCodes = [];
 
-        alert(`Reserva confirmada: ${response.bookingCode}`);
+        for (const flight of selectedFlightsForBooking) {
+            const bookingRequest = {
+                userId: currentUser.id,
+                flightId: flight.id,
+                passengersCount: passengers
+            };
+
+            const response = await callApi("/bookings", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(bookingRequest)
+            });
+
+            bookingCodes.push(response.bookingCode);
+        }
+
+        alert(`Reserva confirmada: ${bookingCodes.join(", ")}`);
         closeBookingModal();
 
     } catch (error) {

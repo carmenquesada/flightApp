@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FlyNow | Buscar vuelos</title>
   <link rel="stylesheet" href="/assets/css/style.css">
@@ -10,13 +11,13 @@
 
   <header class="site-header">
     <div class="container header-content">
-      <div class="logo">✈ FlyNow</div>
+      <div class="logo">&#9992; FlyNow</div>
       <nav class="nav">
         <a href="#">Buscar vuelos</a>
         <a href="/misReservas.html">Mis reservas</a>
         <a href="/ofertas.html">Ofertas</a>
         <a href="/ayuda.html">Ayuda</a>
-        <a href="/perfil.html" class="profile-link" title="Mi perfil">👤</a>
+        <a href="/perfil.html" class="profile-link" title="Mi perfil">&#128100;</a>
         <a href="#" id="logoutLink">Cerrar sesion</a>
       </nav>
     </div>
@@ -27,17 +28,17 @@
       <div class="container hero-content">
         <div class="hero-text">
           <span class="hero-badge">Ofertas exclusivas</span>
-          <h1>Encuentra tu próximo vuelo al mejor precio</h1>
+          <h1>Encuentra tu pr&oacute;ximo vuelo al mejor precio</h1>
           <p>
-            Busca, compara y reserva vuelos de forma rápida, cómoda y visual.
-            Planifica tu viaje con una experiencia más moderna y realista.
+            Busca, compara y reserva vuelos de forma r&aacute;pida, c&oacute;moda y visual.
+            Planifica tu viaje con una experiencia m&aacute;s moderna y realista.
           </p>
         </div>
 
         <div class="search-card">
           <div class="trip-type">
-            <button class="trip-btn active">Ida y vuelta</button>
-            <button class="trip-btn">Solo ida</button>
+            <button type="button" class="trip-btn active" data-trip-type="roundtrip">Ida y vuelta</button>
+            <button type="button" class="trip-btn" data-trip-type="oneway">Solo ida</button>
           </div>
 
           <form id="flightSearchForm" class="search-form">
@@ -63,7 +64,7 @@
                 <input type="date" id="departureDate" name="departureDate">
               </div>
 
-              <div class="form-group">
+              <div class="form-group" id="returnDateGroup">
                 <label for="returnDate">Fecha de vuelta</label>
                 <input type="date" id="returnDate" name="returnDate">
               </div>
@@ -73,6 +74,7 @@
               <div class="form-group">
                 <label for="passengers">Pasajeros</label>
                 <select id="passengers" name="passengers">
+                  <option value="">Cualquier cantidad</option>
                   <option value="1">1 pasajero</option>
                   <option value="2">2 pasajeros</option>
                   <option value="3">3 pasajeros</option>
@@ -83,6 +85,7 @@
               <div class="form-group">
                 <label for="travelClass">Clase</label>
                 <select id="travelClass" name="travelClass">
+                  <option value="">Cualquier clase</option>
                   <option value="economy">Turista</option>
                   <option value="premium">Premium</option>
                   <option value="business">Business</option>
@@ -101,13 +104,14 @@
         <div class="results-header">
           <div>
             <h2>Resultados disponibles</h2>
-            <p id="resultsInfo">Introduce una búsqueda para ver vuelos disponibles.</p>
+            <p id="resultsInfo">Introduce una b&uacute;squeda para ver vuelos disponibles.</p>
+            <p id="selectionInfo" class="selection-info"></p>
           </div>
 
           <div class="results-filters">
             <select id="sortBy">
               <option value="price">Ordenar por precio</option>
-              <option value="duration">Ordenar por duración</option>
+              <option value="duration">Ordenar por duraci&oacute;n</option>
               <option value="departure">Ordenar por hora de salida</option>
             </select>
           </div>
@@ -122,8 +126,8 @@
         <h2>Destinos populares</h2>
         <div class="destinations-grid">
           <div class="destination-card">
-            <h3>París</h3>
-            <p>Escapadas románticas y culturales.</p>
+            <h3>Par&iacute;s</h3>
+            <p>Escapadas rom&aacute;nticas y culturales.</p>
           </div>
           <div class="destination-card">
             <h3>Roma</h3>
@@ -131,7 +135,7 @@
           </div>
           <div class="destination-card">
             <h3>Londres</h3>
-            <p>Una ciudad vibrante para cualquier época.</p>
+            <p>Una ciudad vibrante para cualquier &eacute;poca.</p>
           </div>
         </div>
       </div>
@@ -140,7 +144,7 @@
 
   <footer class="site-footer">
     <div class="container">
-      <p>© 2026 FlyNow. Proyecto de búsqueda y reserva de vuelos.</p>
+      <p>&copy; 2026 FlyNow. Proyecto de b&uacute;squeda y reserva de vuelos.</p>
     </div>
   </footer>
 
@@ -149,12 +153,12 @@
     <div class="modal-overlay"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h3>Realizar Reserva</h3>
-        <button class="modal-close">✕</button>
+        <h3 id="bookingModalTitle">Realizar Reserva</h3>
+        <button class="modal-close">x</button>
       </div>
       <div class="modal-body">
         <p id="flightInfo" style="margin-bottom: 16px;"></p>
-        <label for="passengersInput">Número de pasajeros:</label>
+        <label for="passengersInput">N&uacute;mero de pasajeros:</label>
         <input type="number" id="passengersInput" min="1" max="9" value="1">
         <p id="pricePreview" style="margin-top: 16px; font-weight: bold; color: #2563eb;"></p>
       </div>
